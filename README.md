@@ -140,86 +140,72 @@ Added here, not from the talk: packaging as a single skill with two modes, the `
 
 ## Testing
 
-A skill is a prompt, so "does it work" is really six questions. Each needs a different kind of test:
+A skill is a prompt, so "does it work" is several questions, and each needs its own kind of test. Everything below uses the current skill. Evals run headless `claude -p` (Sonnet) in a clean setup: `--setting-sources project,local` hides all other skills and plugins, the skill under test is copied into the project, and the baseline has no skill at all.
 
-| Question | Test type | How | Result |
-|---|---|---|---|
-| Is the package well formed? | Static checks | `tests/test_static.py`: frontmatter, a description that only says when to use the skill, body under 500 words, every referenced file exists, no personal paths | 6/6 pass |
-| Do the scripts do what they say? | Unit tests | `tests/test_scan.py`: exact pattern counts on a fixture, skips `node_modules` and `dist`, skips copied files, comment ratio, `--top` | 6/6 pass |
-| Does the hook behave in every case? | Contract tests | `tests/test_hook.sh`: 14 cases covering pass, lint fail, typecheck fail, no `node_modules`, a non-JS file, malformed JSON, paths with spaces, a monorepo, a timeout | 14/14 pass |
-| Does Claude load the skill at the right time? | Trigger evals | 12 prompts (6 should load it, 6 should not, including near misses) plus 6 held-out prompts, x 2 runs in headless `claude -p` | 12/12 and 5/6 held-out loaded when they should, 0/18 when they shouldn't |
-| Does it change what Claude does? | Behavior A/B evals | 4 correction scenarios x 3 arms x 2 runs, graded from the files each run left behind | see below |
-| Is it better than the alternatives? | Head-to-head evals | Same scenarios with 3 other correction-learning skills in place of this one, in a clean setup, 56 runs | 8/8 added a failing check, against 0/8 for each of the others |
+| Question | Test | Result |
+|---|---|---|
+| Is the package well formed? | Static checks (`tests/test_static.py`): frontmatter, trigger-only description, body under 500 words, links resolve | 6/6 pass |
+| Does the scan script count right? | Unit tests (`tests/test_scan.py`): exact counts on a fixture, skipped folders, duplicates | 6/6 pass |
+| Does the hook behave? | Contract tests (`tests/test_hook.sh`): 14 cases, including lint fail, typecheck fail, timeout, odd paths | 14/14 pass |
+| Do the tests keep passing? | CI: all three suites run on every push (badge above) | passing |
+| Does it load at the right time? | Trigger evals: 12 tuned and 6 held-out prompts, 2 runs each | loaded in 12/12 tuned and 5/6 held-out runs where it should, 0/18 where it shouldn't |
+| Does it change what Claude does? | Correction evals: 4 JS scenarios x 2 runs per arm | see below |
+| Does it hold outside JS and ESLint? | Python with ruff, TypeScript, and a case where the right check is a test: 3 scenarios x 2 runs per arm | see below |
+| Does audit mode work? | 2 fixture repos with planted anti-patterns, 2 runs per arm | see below |
+| Is it better than similar skills? | Same corrections with 3 other correction-learning skills instead | see below |
 
-### Does it change what Claude does?
+Each correction scenario is a small project with a planted mistake and a plain correction from the user. After the run, a hidden probe file containing the bad pattern is checked with the project's own tool (ESLint, ruff, or a test run against the old buggy code). A run counts as "added a check" only if that check fails on the probe. No model grades another model.
 
-Each scenario is a small JS project with a planted mistake (`setTimeout(..., 0)` render hacks, a stray `console.log`, a renderer importing main-process code, `innerHTML` with user data) and a correction from the user. After each run, a hidden probe file containing the bad pattern is linted. A run only counts as "added a check" if lint fails on that probe. No model grades another model.
-
-There are three arms. In the first, the user types `/slop-to-gold`. In the second, the skill is installed and has to load on its own. In the third, the skill is blocked with `--disallowedTools "Skill(slop-to-gold)"`, which gives the baseline.
+### Plain correction
 
 ![Plain correction results](docs/behavior-soft.svg)
 
-With a plain correction ("you did X again, fix it"), the baseline fixes the one line and stops: none of its 8 runs added a check. With the skill, all 8 runs added a lint rule that fails on the probe, 7 of 8 wrote a lint message naming the fix, and all 8 ran lint to confirm it. That held whether the user typed `/slop-to-gold` or the skill loaded on its own.
-
-The "fixed other copies" and "lint passes at the end" bars are 6/8 when the skill loads on its own, because of the `setTimeout` scenario. In both of those runs, the new rule flagged a second `setTimeout` hack in `tooltip.js`. The runs listed it and offered to fix it instead of editing a file nobody had mentioned. That's what the skill asks for, but it leaves lint failing until you say yes.
+After "you did X again, fix it", the baseline fixes the reported line and stops: 0 of 8 runs added a check. With the skill, 8 of 8 did, whether it loaded on its own or was invoked with `/slop-to-gold`. All 8 lint messages name the fix, other copies of the mistake were fixed (8/8, against 2/8), and lint passed at the end. The skill costs more per run: about $0.10 at API prices, against $0.04.
 
 ![Explicit correction results](docs/behavior-explicit.svg)
 
-When the user also says "make sure it can't come back", Claude adds a check without the skill too (8/8). The skill still makes the lint message better: 8/8 messages name the fix, against 6/8 without it. It also finishes with lint passing more often (8/8 against 7/8), at about the same cost ($0.16 a run against $0.15).
+When the user also says "make sure it can't come back", the baseline adds a check too (8/8). The skill still gives better messages (8/8 name the fix, against 6/8), fixes the other copies (8/8 against 6/8) and leaves lint passing more often (8/8 against 6/8).
 
-### When does it load on its own?
+### Other languages and other checks
 
-![Trigger results](docs/trigger.svg)
+![Other languages](docs/lang.svg)
 
-The first description loaded the skill for complaints about slop, recurring patterns, audits and trust, but only half the time for a plain repeat correction like "you did X again, fix it". In the behavior runs it never loaded for one at all (0/8). The description now names those signals ("again", "I told you", "keeps happening", "third time") and says the skill applies even when the user only asks for a fix. With that change, it loaded in 12 of 12 trigger runs where it should and 8 of 8 behavior runs, and it still never loaded for unrelated or near-miss tasks.
+- **Python:** `datetime.utcnow()` keeps coming back. With the skill, both runs in each arm added a ruff rule and fixed the second copy. Three of four used `banned-api` with a message pointing to `datetime.now(timezone.utc)`; one enabled the stock `DTZ003`. Baseline: 0/2, it fixed the line only.
+- **TypeScript:** `as any`. Every run added a lint rule, including the baseline (2/2), but only the skill's rules named the fix (2/2 each, against 0/2). The baseline used a stock rule whose message says only "Unexpected any".
+- **A test as the check:** fractional cents in an invoice total. With the skill, 2/2 per arm added a regression test that fails on the old code. Baseline: 0/2, it wrote no tests, and the second copy in `receipt.js` kept the bug.
 
-### Round 2: the gaps fixed, retested in a clean setup
+### Audit mode
 
-Round 1 showed two gaps in the skill itself:
+![Audit mode](docs/audit.svg)
 
-- In the `console.log` scenario, 2 runs turned on ESLint's built-in `no-console`. Its message is "Unexpected console statement.", which doesn't say what to do instead.
-- In the `setTimeout` scenario, the 2 runs where the skill loaded on its own asked before fixing the second copy in `tooltip.js`, so lint was left failing.
-
-[`references/correction-to-check.md`](references/correction-to-check.md) now says to use `no-restricted-syntax` (or `-properties`, `-imports`) so the message can name the fix. It also says to fix other copies of the same mistake straight away, or allowlist them file by file, so the new check never leaves lint failing.
-
-Round 1 also had a weakness in the test: the comparison runs only blocked slop-to-gold, so it was still listed, and every run also had the tester's own ~80 other skills installed. Round 2 runs every arm with `--setting-sources project,local`, which hides all user-level skills and plugins. The one skill under test is copied into the project, and the baseline has no skills at all. All arms ran the same day on the same fixtures.
+Prompt: "Audit this codebase for anti-patterns that coding agents would copy if they saw them." The two repos hold known numbers of `useEffect` derived-state hacks, `as any` casts, `setTimeout(..., 0)` hacks, empty `catch` blocks and TODO markers, plus a few legitimate uses as decoys. With the skill, 4/4 runs per arm ran `scripts/scan.py`, changed no files, named the planted patterns and proposed a deterministic check. Without it, the report quality was close: 0/4 ran the script, and 3/4 proposed a check. Audit mode mostly makes the scan repeatable here; the baseline was already a good auditor.
 
 ### Versus other skills that learn from corrections
 
-The same plain correction ("you did X again, fix it") was run with each of these installed instead:
-
-- [**self-improvement**](https://github.com/pskoett/pskoett-ai-skills) (pskoett, commit `878b0e4`): logs corrections to `.learnings/` and promotes them to `CLAUDE.md`.
-- [**/revise-claude-md**](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-md-management) (Anthropic's `claude-md-management` plugin, commit `5cec671`): proposes `CLAUDE.md` additions from the session.
-- [**receiving-code-review**](https://github.com/obra/superpowers) (superpowers 7.0.2): how to act on feedback rigorously.
-
 ![Versus other skills](docs/compare.svg)
 
-With the fixes, slop-to-gold went 8 for 8 on every check, whether it loaded on its own or was invoked: it added a check that fails on the probe, the message names the fix, the other copies were fixed, and lint passed at the end.
-
-None of the other skills added a check in any run (0/8 each), the same as having no skill. They all fix the reported line. `self-improvement` wrote a careful note to `.learnings/LEARNINGS.md` in 8 of 8 invoked runs, and loaded on its own in 5 of 8, but a note doesn't fail a build and the probe passed lint every time. `/revise-claude-md` drafts a `CLAUDE.md` diff and waits for approval, so it rarely writes anything in a headless run.
-
-slop-to-gold uses a little more per run: an estimated $0.10 at API prices, against $0.04 for no skill and $0.05 to $0.10 for the others. That is the cost of writing and testing the rule.
-
-Round 1's comparison, with slop-to-gold blocked rather than absent, gave the same picture (at most 1 of 8 for the others). Its rows are in `evals/results/rivals.jsonl`.
+The same plain correction was run with each of these installed instead: [self-improvement](https://github.com/pskoett/pskoett-ai-skills) (commit `878b0e4`), [/revise-claude-md](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-md-management) (commit `5cec671`), and [receiving-code-review](https://github.com/obra/superpowers) (superpowers 7.0.2). None added a check in any run (0/8 each), the same as no skill. They fix the reported line. `self-improvement` wrote notes to `.learnings/`, but a note doesn't fail a build.
 
 ### Does it load on prompts it was never tuned on?
 
-The description was reworded after round 1 using the 12 trigger prompts above, so those can't show whether it generalizes. Six new prompts were written before any round-2 run and never used for tuning: three that should load the skill and three near misses that shouldn't.
-
 ![Trigger results on held-out prompts](docs/trigger-clean.svg)
 
-It loaded in 12 of 12 runs on the tuned prompts and 5 of 6 on the held-out ones, and never loaded on any prompt where it shouldn't (0 of 18). The miss was "You keep leaving TODO comments instead of handling the error", which loaded in 1 of its 2 runs. The description was left as it is, so the held-out prompts stay held out.
+The description was tuned on 12 prompts, so 6 more were written beforehand and never used for tuning. It loaded in 12/12 runs on the tuned prompts and 5/6 on the held-out ones, and in 0/18 where it shouldn't. The miss was "You keep leaving TODO comments instead of handling the error", which loaded in 1 of 2 runs.
 
-### Limits of these numbers
+### History
 
-- The samples are small: 2 runs per cell. Read the bars as direction, not precision.
-- Everything ran on one model (Sonnet via `claude -p`), with hooks and MCP servers off. Trigger runs were capped at 4 turns.
-- In the baseline arm the skill's name and description are still listed; only loading it is blocked.
-- The boundary scenario has no second copy of the mistake, so "fixed other copies" passes trivially there.
-- "Names the fix" is a keyword match on the lint message (for example `textContent` for `innerHTML`).
-- The held-out trigger set is small: 6 prompts.
-- The round-2 fixes were checked on the same 4 scenarios that exposed the gaps. The plain-correction and explicit-correction charts above are from round 1, before the fixes.
-- Round-2 runs that were cut off by an account usage limit were thrown away and run again. Three of them used a few turns before being cut off; they are excluded too.
+Round 1 showed two gaps: the skill sometimes picked a stock ESLint rule whose message teaches nothing (`no-console`), and it asked before fixing a second copy of a mistake, leaving lint failing. It also loaded on a plain repeat correction in only about half the runs. `references/correction-to-check.md` now asks for rules with custom messages and for fixing or allowlisting other copies at once, and the description names the "again" and "I told you" signals. Round 1 also left the tester's ~80 other skills installed, so everything was rerun in the clean setup above. The round-1 rows are kept in `evals/results/` (`behavior*.jsonl`, `trigger*.jsonl`, `rivals.jsonl`). The audit and other-language evals found nothing to fix in the skill. One script fix came out of them: `scan.py` now skips `.claude/`, so a project-installed skill doesn't count its own files.
+
+### Limits
+
+- Small samples: 2 runs per cell, 8 per chart line. Read the charts as direction, not precision.
+- One model (Sonnet), hooks and MCP servers off, trigger runs capped at 4 turns.
+- "Names the fix" is a keyword match on the check's message.
+- The boundary scenario has one copy of the mistake, so "fixed other copies" passes trivially there.
+- The test scenario passes if the agent's tests fail on the old code. It can't tell a good test from a narrow one.
+- The audit grader checks keywords and counts nothing: it doesn't verify the numbers in the report.
+- The other-language scenarios are 3 cases with 2 runs each, written by the skill's author.
+- The explicit-correction runs were made once, after the last skill change. Round-2 runs cut off by an account usage limit were discarded and rerun.
 
 Full tables: [`evals/results/summary.md`](evals/results/summary.md). Raw rows: `evals/results/*.jsonl`.
 
@@ -230,13 +216,15 @@ python3 tests/test_static.py
 python3 tests/test_scan.py
 bash tests/test_hook.sh
 
-# Evals need Claude Code logged in, plus a folder with eslint@9 and @eslint/js@9 installed.
-python3 evals/run_evals.py trigger  --reps 2 --work /tmp/s2g --eslint-modules <path>/node_modules
-python3 evals/run_evals.py behavior --reps 2 --work /tmp/s2g --eslint-modules <path>/node_modules
-# Head-to-head in a clean setup: pass each other skill as --src name=<folder or command file>.
-python3 evals/run_evals.py clean --src self-improvement=<dir> --src revise-claude-md=<file> --src receiving-code-review=<dir> \
-  --out clean.jsonl --work /tmp/s2g --eslint-modules <path>/node_modules
+# Evals need Claude Code logged in and a folder with eslint@9, @eslint/js and globals installed.
+# The other-language scenarios also need ruff on PATH (--bin) and typescript + typescript-eslint (--ts-modules).
+python3 evals/run_evals.py clean --out clean.jsonl --work /tmp/s2g --eslint-modules <path>/node_modules
+python3 evals/run_evals.py clean --variant explicit --out clean-explicit.jsonl --work /tmp/s2g --eslint-modules <path>/node_modules
 python3 evals/run_evals.py clean-trigger --out clean-trigger.jsonl --work /tmp/s2g --eslint-modules <path>/node_modules
+python3 evals/run_evals.py audit --out audit.jsonl --work /tmp/s2g --eslint-modules <path>/node_modules
+python3 evals/run_evals.py lang --out lang.jsonl --work /tmp/s2g --eslint-modules <path>/node_modules \
+  --ts-modules <path-ts>/node_modules --bin <venv>/bin
+# Other skills for the head-to-head: pass --src name=<folder or command file>.
 
 # Charts, logo and social preview are hand-drawn with rough.js.
 (cd evals/charts && npm install)
@@ -244,7 +232,7 @@ python3 evals/make_charts.py
 node evals/charts/logo.mjs && node evals/charts/social.mjs
 ```
 
-All the eval runs together (220 sessions) would cost about $22 at API prices, going by the `total_cost_usd` that `claude -p` reports for each run. They were run on a Claude subscription, so they used plan limits rather than being billed.
+All the eval runs together (266 sessions) would cost about $26 at API prices, going by the `total_cost_usd` that `claude -p` reports. They ran on a Claude subscription, so they used plan limits and were not billed.
 
 ## License
 

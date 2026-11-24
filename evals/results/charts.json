@@ -1,186 +1,12 @@
 [
  {
-  "file": "trigger.svg",
-  "title": "When does the skill load on its own?",
-  "subtitle": "Share of runs that loaded the skill, before and after rewording the description.",
-  "series": [
-   "Old description",
-   "New description"
-  ],
-  "rows": [
-   {
-    "section": "Should load the skill"
-   },
-   {
-    "label": "\"setTimeout again, told you last week\"",
-    "vals": [
-     {
-      "v": 0.5,
-      "txt": "1/2"
-     },
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     }
-    ]
-   },
-   {
-    "label": "\"agents keep writing useEffect\"",
-    "vals": [
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     },
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     }
-    ]
-   },
-   {
-    "label": "\"audit for patterns agents copy\"",
-    "vals": [
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     },
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     }
-    ]
-   },
-   {
-    "label": "\"tired of reviewing every line\"",
-    "vals": [
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     },
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     }
-    ]
-   },
-   {
-    "label": "\"as any again, third time\"",
-    "vals": [
-     {
-      "v": 0.5,
-      "txt": "1/2"
-     },
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     }
-    ]
-   },
-   {
-    "label": "\"our agent code is full of slop\"",
-    "vals": [
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     },
-     {
-      "v": 1.0,
-      "txt": "2/2"
-     }
-    ]
-   },
-   {
-    "section": "Should not load the skill"
-   },
-   {
-    "label": "add a dark mode toggle",
-    "vals": [
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     },
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     }
-    ]
-   },
-   {
-    "label": "write a date parser in Python",
-    "vals": [
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     },
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     }
-    ]
-   },
-   {
-    "label": "explain useEffect cleanup",
-    "vals": [
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     },
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     }
-    ]
-   },
-   {
-    "label": "set up ESLint (near miss)",
-    "vals": [
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     },
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     }
-    ]
-   },
-   {
-    "label": "add a debounce option",
-    "vals": [
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     },
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     }
-    ]
-   },
-   {
-    "label": "review a file for bugs (near miss)",
-    "vals": [
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     },
-     {
-      "v": 0.0,
-      "txt": "0/2"
-     }
-    ]
-   }
-  ],
-  "note": "Headless claude -p, Sonnet, 2 runs per prompt, first 4 turns. Prompts in evals/cases.json."
- },
- {
   "file": "behavior-soft.svg",
   "title": "Plain correction: \"you did X again, fix it\"",
   "subtitle": "Share of runs meeting each check. 8 runs per bar (4 scenarios x 2).",
   "series": [
    "Skill invoked (/slop-to-gold)",
    "Skill loads on its own",
-   "Skill blocked (baseline)"
+   "No skill installed (baseline)"
   ],
   "rows": [
    {
@@ -195,8 +21,8 @@
       "txt": "8/8"
      },
      {
-      "v": 0.0,
-      "txt": "0/8"
+      "v": 0,
+      "txt": "n/a"
      }
     ]
    },
@@ -225,8 +51,8 @@
       "txt": "8/8"
      },
      {
-      "v": 0.75,
-      "txt": "6/8"
+      "v": 1.0,
+      "txt": "8/8"
      },
      {
       "v": 0.25,
@@ -255,12 +81,12 @@
     "label": "Check message names the fix",
     "vals": [
      {
-      "v": 0.875,
-      "txt": "7/8"
+      "v": 1.0,
+      "txt": "8/8"
      },
      {
-      "v": 0.875,
-      "txt": "7/8"
+      "v": 1.0,
+      "txt": "8/8"
      },
      {
       "v": 0.0,
@@ -280,8 +106,8 @@
       "txt": "8/8"
      },
      {
-      "v": 0.375,
-      "txt": "3/8"
+      "v": 0.0,
+      "txt": "0/8"
      }
     ]
    },
@@ -293,8 +119,8 @@
       "txt": "8/8"
      },
      {
-      "v": 0.75,
-      "txt": "6/8"
+      "v": 1.0,
+      "txt": "8/8"
      },
      {
       "v": 1.0,
@@ -311,7 +137,7 @@
   "subtitle": "Share of runs meeting each check. 8 runs per bar (4 scenarios x 2).",
   "series": [
    "Skill invoked (/slop-to-gold)",
-   "Skill blocked (baseline)"
+   "No skill installed (baseline)"
   ],
   "rows": [
    {
@@ -322,8 +148,8 @@
       "txt": "8/8"
      },
      {
-      "v": 0.0,
-      "txt": "0/8"
+      "v": 0,
+      "txt": "n/a"
      }
     ]
    },
@@ -348,8 +174,8 @@
       "txt": "8/8"
      },
      {
-      "v": 0.875,
-      "txt": "7/8"
+      "v": 0.75,
+      "txt": "6/8"
      }
     ]
    },
@@ -400,8 +226,8 @@
       "txt": "8/8"
      },
      {
-      "v": 0.875,
-      "txt": "7/8"
+      "v": 0.75,
+      "txt": "6/8"
      }
     ]
    }
@@ -724,5 +550,150 @@
    }
   ],
   "note": "Headless claude -p, Sonnet, 2 runs per prompt, first 4 turns. Prompts in evals/cases.json."
+ },
+ {
+  "file": "audit.svg",
+  "title": "Audit mode on repos with planted anti-patterns",
+  "subtitle": "Share of runs meeting each check. 4 runs per line (2 repos x 2).",
+  "series": [
+   "Skill loads on its own",
+   "Skill invoked (/slop-to-gold)",
+   "No skill (baseline)"
+  ],
+  "rows": [
+   {
+    "label": "Changed no source files",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     },
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     },
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     }
+    ]
+   },
+   {
+    "label": "Ran scripts/scan.py",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     },
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/4"
+     }
+    ]
+   },
+   {
+    "label": "Named the planted patterns",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     },
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     },
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     }
+    ]
+   },
+   {
+    "label": "Proposed a lint/type/test check",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     },
+     {
+      "v": 1.0,
+      "txt": "4/4"
+     },
+     {
+      "v": 0.75,
+      "txt": "3/4"
+     }
+    ]
+   }
+  ],
+  "note": "Graded from files and the final message. Prompt: audit for anti-patterns agents would copy."
+ },
+ {
+  "file": "lang.svg",
+  "title": "Other languages and other checks",
+  "subtitle": "Plain correction. Share of runs with a check that fails on a hidden probe. 2 runs per dot.",
+  "series": [
+   "Skill loads on its own",
+   "Skill invoked (/slop-to-gold)",
+   "No skill (baseline)"
+  ],
+  "rows": [
+   {
+    "label": "Python: utcnow() (ruff)",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "TypeScript: as any (eslint)",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "JS: fractional cents (test)",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   }
+  ],
+  "note": "ruff for Python, ESLint with typescript-eslint, a test that fails on the old buggy code."
  }
 ]
