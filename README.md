@@ -16,7 +16,7 @@ Inspired by the talk ["slop into gold"](https://youtu.be/O_zcc6Xl12g). See [Insp
 ## Install
 
 ```bash
-git clone https://github.com/DevxD98/-slop-to-gold.git ~/.claude/skills/slop-to-gold
+git clone https://github.com/DevxD98/slop-to-gold.git ~/.claude/skills/slop-to-gold
 ```
 
 Note: the repo name starts with a hyphen. If a command treats the URL or folder as a flag, put `--` before it or clone into the explicit path as above.
