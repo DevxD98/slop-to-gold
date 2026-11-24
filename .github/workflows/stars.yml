@@ -1,0 +1,45 @@
+# Redraws the hand-drawn star counter (evals/charts/stars.mjs) whenever someone stars the
+# repo, once a day, or on demand. The SVG goes to a separate `stars` branch with a single
+# commit, so main's history stays clean. The README embeds it from that branch.
+name: star counter
+
+on:
+  watch:
+    types: [started]
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [evals/charts/stars.mjs, .github/workflows/stars.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stars
+  cancel-in-progress: false
+
+jobs:
+  draw:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+        working-directory: evals/charts
+      - run: node evals/charts/stars.mjs "$RUNNER_TEMP/stars.svg"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to the stars branch
+        run: |
+          cd "$RUNNER_TEMP"
+          mkdir out && mv stars.svg out/ && cd out
+          git init -q -b stars
+          git config user.name "${{ github.repository_owner }}"
+          git config user.email "${{ github.repository_owner_id }}+${{ github.repository_owner }}@users.noreply.github.com"
+          git add stars.svg
+          git commit -qm "Update star counter"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" stars

@@ -1,0 +1,18 @@
+{
+  "name": "slop-to-gold",
+  "owner": {
+    "name": "DevxD98",
+    "url": "https://github.com/DevxD98"
+  },
+  "metadata": {
+    "description": "The slop-to-gold Claude Code skill: every repeated correction becomes a deterministic check."
+  },
+  "plugins": [
+    {
+      "name": "slop-to-gold",
+      "source": "./",
+      "description": "Turns repeated agent corrections into lint rules, types and tests, so the same AI slop can't come back.",
+      "category": "code-quality"
+    }
+  ]
+}

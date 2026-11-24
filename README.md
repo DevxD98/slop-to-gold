@@ -1,12 +1,94 @@
 <p align="center"><img src="docs/logo.svg" width="560" alt="slop-to-gold: a blob of slop goes through a lint check and comes out a gold bar"></p>
 
-# slop-to-gold
+<h3 align="center">Every correction you give an agent becomes a check it can't skip.</h3>
 
-A single [Claude Code skill](https://docs.claude.com/en/docs/claude-code/skills) that turns agent corrections into permanent, deterministic checks instead of prose rules.
+<p align="center">
+A <a href="https://docs.claude.com/en/docs/claude-code/skills">Claude Code skill</a> that turns repeated agent mistakes into lint rules, types and tests,<br>so the same AI slop can't come back.
+</p>
 
-Agents copy whatever the codebase already shows them, so slop spreads. This skill makes the codebase the strongest input: when you correct an agent, the fix becomes a lint rule, type, test or dependency boundary first. Prose (AGENTS.md, comments) is the last resort.
+<p align="center">
+<a href="#install">Install</a> ·
+<a href="#what-it-looks-like">What it looks like</a> ·
+<a href="#what-it-does">What it does</a> ·
+<a href="#testing">Results</a> ·
+<a href="#inspiration">Inspiration</a>
+</p>
+
+<p align="center"><img src="https://raw.githubusercontent.com/DevxD98/slop-to-gold/stars/stars.svg" width="560" alt="GitHub stars for slop-to-gold, redrawn automatically"></p>
+
+Agents copy whatever the codebase already shows them, so slop spreads. Telling the agent "don't do that" works until the next session forgets. This skill makes the codebase the strongest input instead: when you correct an agent, the fix becomes a lint rule, type, test or dependency boundary first. Prose (AGENTS.md, CLAUDE.md, comments) is the last resort.
 
 Inspired by the talk ["slop into gold"](https://youtu.be/O_zcc6Xl12g). See [Inspiration](#inspiration).
+
+## Install
+
+**Let Claude do it.** Paste this into Claude Code:
+
+```text
+Install the slop-to-gold skill for me. Run this in the shell:
+  claude plugin install slop-to-gold --marketplace DevxD98/slop-to-gold
+If that fails because this Claude Code version doesn't support --marketplace, run:
+  claude plugin marketplace add DevxD98/slop-to-gold
+  claude plugin install slop-to-gold@slop-to-gold
+If the plugin commands don't exist at all, clone
+https://github.com/DevxD98/slop-to-gold into ~/.claude/skills/slop-to-gold instead.
+Then tell me whether it worked and remind me to restart Claude Code.
+```
+
+**Or run it yourself:**
+
+```bash
+claude plugin install slop-to-gold --marketplace DevxD98/slop-to-gold
+```
+
+Inside a Claude Code session the same thing is `/plugin marketplace add DevxD98/slop-to-gold`, then `/plugin install slop-to-gold@slop-to-gold`.
+
+**Or as a plain skill folder**, without the plugin system:
+
+```bash
+git clone https://github.com/DevxD98/slop-to-gold.git ~/.claude/skills/slop-to-gold
+```
+
+Restart Claude Code afterwards. The plugin version shows up as `slop-to-gold:slop-to-gold`, the folder version as `slop-to-gold`. Install one, not both. The audit script needs `python3`; the optional hook below also needs `bash`, `jq` and `npm`.
+
+## What it looks like
+
+This is a real run from the evals below, unedited. The user says only this:
+
+> You set innerHTML with user data in src/list.js again. That's an XSS hole and I've told you before. Fix it.
+
+**Without the skill**, Claude fixes the one line and stops. `src/toast.js` still has the same bug, and nothing stops the next session writing it again:
+
+```diff
+-    li.innerHTML = item.name;
++    li.textContent = item.name;
+```
+
+**With the skill**, which loaded on its own, Claude fixes the line, finds and fixes the second copy in `src/toast.js`, and adds a lint rule whose message names the fix:
+
+```diff
++const xssMessage =
++  "Raw HTML sinks cause XSS. Set `node.textContent = value` or build nodes with `el(tag, text)` from src/dom.js instead.";
++  {
++    rules: {
++      "no-restricted-properties": [
++        "error",
++        { property: "innerHTML", message: xssMessage },
++        { property: "outerHTML", message: xssMessage },
++        { property: "insertAdjacentHTML", message: xssMessage },
++      ],
+```
+
+Then the grader drops a new file with the same mistake into the project and runs lint. With the skill's rule:
+
+```text
+src/zz-probe.js
+  2:3  error  'innerHTML' is restricted from being used. Raw HTML sinks cause XSS.
+              Set `node.textContent = value` or build nodes with `el(tag, text)` from src/dom.js instead
+✖ 1 problem (1 error, 0 warnings)
+```
+
+Without it, lint passes (exit 0) and the bug ships.
 
 ## What it does
 
@@ -14,16 +96,6 @@ Inspired by the talk ["slop into gold"](https://youtu.be/O_zcc6Xl12g). See [Insp
 |---|---|---|
 | Correction to check | You correct the agent, or the same mistake happens twice | Picks the strongest check, writes a lint message that teaches the root-cause fix, proves the check fails on the bad pattern, offers to clean up old occurrences |
 | Audit | You ask to audit a repo, or start on an unfamiliar one | Runs `scripts/scan.py` for anti-pattern counts, then proposes a ranked list of checks. It changes nothing until you pick |
-
-## Install
-
-```bash
-git clone https://github.com/DevxD98/slop-to-gold.git ~/.claude/skills/slop-to-gold
-```
-
-Note: the repo name starts with a hyphen. If a command treats the URL or folder as a flag, put `--` before it or clone into the explicit path as above.
-
-Requires `python3` for the scan. The optional hook also needs `bash`, `jq` and `npm`.
 
 ## Optional: enforcement hook
 
@@ -118,9 +190,10 @@ bash tests/test_hook.sh
 python3 evals/run_evals.py trigger  --reps 2 --work /tmp/s2g --eslint-modules <path>/node_modules
 python3 evals/run_evals.py behavior --reps 2 --work /tmp/s2g --eslint-modules <path>/node_modules
 
-# Charts are hand-drawn with rough.js.
+# Charts, logo and social preview are hand-drawn with rough.js.
 (cd evals/charts && npm install)
 python3 evals/make_charts.py
+node evals/charts/logo.mjs && node evals/charts/social.mjs
 ```
 
 All the eval runs together (96 sessions) cost about $12 in API usage.

@@ -1,0 +1,21 @@
+{
+  "name": "slop-to-gold",
+  "version": "1.0.0",
+  "description": "Turns repeated agent corrections into lint rules, types and tests, so the same AI slop can't come back.",
+  "author": {
+    "name": "DevxD98",
+    "url": "https://github.com/DevxD98"
+  },
+  "homepage": "https://github.com/DevxD98/slop-to-gold",
+  "repository": "https://github.com/DevxD98/slop-to-gold",
+  "license": "MIT",
+  "keywords": [
+    "lint",
+    "eslint",
+    "code-quality",
+    "ai-slop",
+    "agents"
+  ],
+  "skills": "./",
+  "icon": ".claude-plugin/icon.png"
+}
