@@ -1,4 +1,4 @@
-// Draw hand-drawn (rough.js) bar charts from evals/results/charts.json into docs/*.svg.
+// Draw hand-drawn (rough.js) lollipop charts from evals/results/charts.json into docs/*.svg.
 // Run via `python3 evals/make_charts.py`, or directly: node evals/charts/render.mjs
 // The SVGs embed the Caveat font (SIL OFL) so they look the same on GitHub, and they switch
 // colours with prefers-color-scheme. A fixed seed keeps the sketchy lines stable between builds.
@@ -30,6 +30,14 @@ function paths(drawable, cls, title = "") {
   }).join("");
 }
 
+let mseed = 7;
+function marker(i, x, y, r) {
+  const o = { seed: mseed++, roughness: 1.1, stroke: "#000", strokeWidth: 1.6, fill: "#000", fillStyle: "solid" };
+  if (i === 1) return gen.rectangle(x - r * 0.9, y - r * 0.9, r * 1.8, r * 1.8, o);
+  if (i === 2) return gen.polygon([[x, y - r * 1.25], [x + r * 1.25, y], [x, y + r * 1.25], [x - r * 1.25, y]], o);
+  return gen.circle(x, y, r * 2, o);
+}
+
 function draw(spec, seedBase) {
   const n = spec.series.length;
   const plotX = LABEL_W, plotW = W - LABEL_W - VALUE_W - PAD;
@@ -47,20 +55,16 @@ function draw(spec, seedBase) {
     const groupH = n * BAR_H + (n - 1) * GAP;
     out.push(`<text x="${LABEL_W - 14}" y="${y + groupH / 2 + 6}" class="t1" text-anchor="end">${esc(row.label)}</text>`);
     row.vals.forEach((val, i) => {
-      const by = y + i * (BAR_H + GAP);
+      const by = y + i * (BAR_H + GAP), cy = by + BAR_H / 2;
       const w = Math.max(plotW * val.v, 0);
+      const title = `${spec.series[i]}: ${val.txt}`;
+      // Lollipop: a sketchy stem from 0 to the value, then a filled marker (circle, square or
+      // diamond per series, so the series differ by shape as well as colour).
       if (w > 1) {
-        const bar = gen.rectangle(plotX, by, w, BAR_H, {
-          seed: seed++, roughness: 1.3, bowing: 1.2, strokeWidth: 1.4,
-          fill: "#000", fillStyle: i === 1 ? "cross-hatch" : "hachure", hachureGap: 4.5,
-          hachureAngle: i === 2 ? 45 : -41, fillWeight: 1.1, stroke: "#000",
-        });
-        out.push(paths(bar, `s${i + 1}`, `${spec.series[i]}: ${val.txt}`));
-      } else {
-        // A zero still gets a tiny scribble at the baseline so the bar slot reads as "none".
-        out.push(paths(gen.line(plotX, by + BAR_H / 2, plotX + 6, by + BAR_H / 2, { seed: seed++, roughness: 1.5, stroke: "#000", strokeWidth: 1.4 }), `s${i + 1}`));
+        out.push(paths(gen.line(plotX, cy, plotX + w, cy, { seed: seed++, roughness: 1.4, bowing: 1.6, stroke: "#000", strokeWidth: 2.4 }), `s${i + 1}`, title));
       }
-      out.push(`<text x="${plotX + w + 8}" y="${by + BAR_H - 2}" class="t2 v">${esc(val.txt)}</text>`);
+      out.push(paths(marker(i, plotX + w, cy, 7), `s${i + 1}`, title));
+      out.push(`<text x="${plotX + w + 14}" y="${by + BAR_H - 2}" class="t2 v">${esc(val.txt)}</text>`);
     });
     y += groupH + 16;
   }
@@ -75,9 +79,9 @@ function draw(spec, seedBase) {
   if (n > 1) {
     let lx = PAD;
     spec.series.forEach((name, i) => {
-      const sw = gen.rectangle(lx, 80, 18, 14, { seed: seed++, roughness: 1.2, fill: "#000", fillStyle: i === 1 ? "cross-hatch" : "hachure", hachureGap: 3.5, hachureAngle: i === 2 ? 45 : -41, stroke: "#000", strokeWidth: 1.3 });
-      legend += paths(sw, `s${i + 1}`) + `<text x="${lx + 26}" y="${93}" class="t2">${esc(name)}</text>`;
-      lx += 46 + 8.2 * name.length;
+      legend += paths(gen.line(lx, 87, lx + 22, 87, { seed: seed++, roughness: 1.2, stroke: "#000", strokeWidth: 2.4 }), `s${i + 1}`)
+        + paths(marker(i, lx + 22, 87, 6), `s${i + 1}`) + `<text x="${lx + 36}" y="${93}" class="t2">${esc(name)}</text>`;
+      lx += 56 + 8.2 * name.length;
     });
   }
   const H = bottom + 52;
@@ -89,11 +93,11 @@ svg{font-family:Caveat,"Comic Sans MS",cursive}
 .t1{fill:#0b0b0b;font-size:19px}.t2{fill:#52514e;font-size:18px}.t3{fill:#6f6e69;font-size:16px}
 .h{fill:#0b0b0b;font-size:28px}.sec{font-size:20px;fill:#0b0b0b}.v{font-variant-numeric:tabular-nums}
 path{fill:none}.ax-line{stroke:#52514e}.grid-line{stroke:#cfcec8}.frame-line{stroke:#52514e}
-${SERIES.map(([lt], i) => `.s${i + 1}-line,.s${i + 1}-fill{stroke:${lt}}`).join("")}
+${SERIES.map(([lt], i) => `.s${i + 1}-line{stroke:${lt}}.s${i + 1}-fill{fill:${lt};stroke:none}`).join("")}
 @media (prefers-color-scheme: dark){
 .bg{fill:#1a1a19}.t1,.h,.sec{fill:#f0efec}.t2{fill:#c3c2b7}.t3{fill:#9b9a92}
 .ax-line,.frame-line{stroke:#c3c2b7}.grid-line{stroke:#383835}
-${SERIES.map(([, dk], i) => `.s${i + 1}-line,.s${i + 1}-fill{stroke:${dk}}`).join("")}
+${SERIES.map(([, dk], i) => `.s${i + 1}-line{stroke:${dk}}.s${i + 1}-fill{fill:${dk}}`).join("")}
 }`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title)}">
 <style>${css}</style>
@@ -105,8 +109,11 @@ ${legend}${axis.join("")}${out.join("")}
 </svg>`;
 }
 
-fs.mkdirSync(path.join(root, "docs"), { recursive: true });
+// CHARTS_OUT lets you preview into another folder without touching docs/.
+const outDir = process.env.CHARTS_OUT || path.join(root, "docs");
+fs.mkdirSync(outDir, { recursive: true });
 specs.forEach((spec, i) => {
-  fs.writeFileSync(path.join(root, "docs", spec.file), draw(spec, 1000 * (i + 1)));
-  console.log("drew docs/" + spec.file);
+  mseed = 7 + 100 * i;
+  fs.writeFileSync(path.join(outDir, spec.file), draw(spec, 1000 * (i + 1)));
+  console.log("drew " + path.join(outDir, spec.file));
 });

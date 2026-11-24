@@ -37,6 +37,7 @@ FILES = {
     # Must be ignored: skipped dirs and unknown extensions.
     "node_modules/lib/index.js": "setTimeout(a, 0); setTimeout(b, 0);\n",
     "dist/out.js": "setTimeout(a, 0);\n",
+    ".claude/skills/x/s.py": "setTimeout(a, 0)\n",
     "notes.md": "setTimeout( TODO\n",
     # Byte-identical copy of a.ts: counted once.
     "copy/src/a.ts": None,

@@ -1,194 +1,346 @@
 {
-  "trigger": [
-    {
-      "id": "t-repeat-timer",
-      "should": true,
-      "prompt": "You used setTimeout(..., 0) in src/menu.js to wait for the menu to render. I told you last week not to do that, and you did it again. Fix it."
-    },
-    {
-      "id": "t-recurring-effect",
-      "should": true,
-      "prompt": "Agents keep writing useEffect for derived state in this repo. Every PR has one. Can we stop this happening for good?"
-    },
-    {
-      "id": "t-audit",
-      "should": true,
-      "prompt": "Audit this codebase for anti-patterns that coding agents would copy if they saw them."
-    },
-    {
-      "id": "t-trust-prs",
-      "should": true,
-      "prompt": "I'm tired of reviewing every line of the PRs Claude writes for this project. How do I make them trustworthy without reading every diff?"
-    },
-    {
-      "id": "t-third-time",
-      "should": true,
-      "prompt": "Again with the `as any` casts. That's the third time I'm telling you. Remove it."
-    },
-    {
-      "id": "t-slop",
-      "should": true,
-      "prompt": "Our agent-written code is full of slop. What should we do about it in this repo?"
-    },
-    {
-      "id": "n-dark-mode",
-      "should": false,
-      "prompt": "Add a dark mode toggle to the settings page."
-    },
-    {
-      "id": "n-python",
-      "should": false,
-      "prompt": "Write a Python function that parses ISO 8601 dates, with a couple of examples."
-    },
-    {
-      "id": "n-explain-effect",
-      "should": false,
-      "prompt": "Explain how React useEffect cleanup functions work."
-    },
-    {
-      "id": "n-setup-eslint",
-      "should": false,
-      "prompt": "Set up ESLint with the recommended config for this project."
-    },
-    {
-      "id": "n-fix-test",
-      "should": false,
-      "prompt": "The debounce function in src/debounce.js should fire on the leading edge too. Add that option."
-    },
-    {
-      "id": "n-review-pr",
-      "should": false,
-      "prompt": "Review src/tooltip.js for bugs."
-    }
-  ],
-  "behavior": [
-    {
-      "id": "timer",
-      "target": "src/menu.js",
-      "old": [
-        "src/tooltip.js"
-      ],
-      "bad": "setTimeout\\(",
-      "legit": [
-        "src/debounce.js",
-        "setTimeout\\("
-      ],
-      "probe": [
-        "src/zz-probe.js",
-        "export function probe(el) {\n  setTimeout(() => el.focus(), 0);\n}\n"
-      ],
-      "teach": [
-        "requestAnimationFrame",
-        "await",
-        "promise",
-        "queueMicrotask",
-        "event",
-        "transitionend",
-        "ready",
-        "callback",
-        "focus after",
-        "render"
-      ],
-      "explicit": "You used setTimeout(..., 0) again in src/menu.js to wait for the menu to render before focusing the button. I've corrected this twice already. Fix it properly and make sure it doesn't happen again.",
-      "soft": "You used setTimeout(..., 0) again in src/menu.js to wait for the menu to render before focusing the button. I've corrected this twice already. Fix it."
-    },
-    {
-      "id": "console",
-      "target": "src/cart.js",
-      "old": [
-        "src/api.js"
-      ],
-      "bad": "console\\.log\\(",
-      "legit": [
-        "src/logger.js",
-        "console\\.error\\("
-      ],
-      "probe": [
-        "src/zz-probe.js",
-        "export function probe(x) {\n  console.log(\"probe\", x);\n  return x;\n}\n"
-      ],
-      "teach": [
-        "logger",
-        "debugger",
-        "remove",
-        "delete"
-      ],
-      "explicit": "There's a console.log left in src/cart.js again. This keeps happening in your PRs. Clean it up and stop it recurring.",
-      "soft": "There's a console.log left in src/cart.js again. This keeps happening in your PRs. Clean it up."
-    },
-    {
-      "id": "boundary",
-      "target": "src/renderer/panel.js",
-      "old": [],
-      "bad": "from\\s+[\"']\\.\\./main/",
-      "legit": null,
-      "probe": [
-        "src/renderer/zz-probe.js",
-        "import { openDb } from \"../main/db.js\";\n\nexport const probe = () => openDb(\"x.json\");\n"
-      ],
-      "teach": [
-        "window.api",
-        "preload",
-        "ipc",
-        "shared"
-      ],
-      "explicit": "src/renderer/panel.js imports from src/main again. Renderer code must never import main-process code; it should go through window.api from the preload. You did this before too. Fix it and make it stick.",
-      "soft": "src/renderer/panel.js imports from src/main again. Renderer code must never import main-process code; it should go through window.api from the preload. You did this before too. Fix it."
-    },
-    {
-      "id": "innerhtml",
-      "target": "src/list.js",
-      "old": [
-        "src/toast.js"
-      ],
-      "bad": "\\.innerHTML\\s*=",
-      "legit": null,
-      "probe": [
-        "src/zz-probe.js",
-        "export function probe(node, text) {\n  node.innerHTML = text;\n}\n"
-      ],
-      "teach": [
-        "textContent",
-        "el(",
-        "createElement",
-        "createTextNode",
-        "sanitiz",
-        "replaceChildren"
-      ],
-      "explicit": "You set innerHTML with user data in src/list.js again. That's an XSS hole and I've told you before. Fix it and make sure it can't come back.",
-      "soft": "You set innerHTML with user data in src/list.js again. That's an XSS hole and I've told you before. Fix it."
-    }
-  ],
-  "trigger_heldout": [
-    {
-      "id": "h-ts-ignore",
-      "should": true,
-      "prompt": "Why is there a @ts-ignore in src/api.ts again? We went over this. Just fix it."
-    },
-    {
-      "id": "h-todo-errors",
-      "should": true,
-      "prompt": "You keep leaving TODO comments instead of handling the error. Fix the one in src/upload.js."
-    },
-    {
-      "id": "h-utils-sprawl",
-      "should": true,
-      "prompt": "Every agent PR in this repo adds a new utils file instead of using the existing helpers. How do we stop that?"
-    },
-    {
-      "id": "h-n-first-bug",
-      "should": false,
-      "prompt": "The total in src/cart.js is off by one. Fix it."
-    },
-    {
-      "id": "h-n-lint-fails",
-      "should": false,
-      "prompt": "npm run lint fails on src/api.js, can you fix the errors?"
-    },
-    {
-      "id": "h-n-rename",
-      "should": false,
-      "prompt": "Rename the data variable in src/list.js to something clearer."
-    }
-  ]
+ "trigger": [
+  {
+   "id": "t-repeat-timer",
+   "should": true,
+   "prompt": "You used setTimeout(..., 0) in src/menu.js to wait for the menu to render. I told you last week not to do that, and you did it again. Fix it."
+  },
+  {
+   "id": "t-recurring-effect",
+   "should": true,
+   "prompt": "Agents keep writing useEffect for derived state in this repo. Every PR has one. Can we stop this happening for good?"
+  },
+  {
+   "id": "t-audit",
+   "should": true,
+   "prompt": "Audit this codebase for anti-patterns that coding agents would copy if they saw them."
+  },
+  {
+   "id": "t-trust-prs",
+   "should": true,
+   "prompt": "I'm tired of reviewing every line of the PRs Claude writes for this project. How do I make them trustworthy without reading every diff?"
+  },
+  {
+   "id": "t-third-time",
+   "should": true,
+   "prompt": "Again with the `as any` casts. That's the third time I'm telling you. Remove it."
+  },
+  {
+   "id": "t-slop",
+   "should": true,
+   "prompt": "Our agent-written code is full of slop. What should we do about it in this repo?"
+  },
+  {
+   "id": "n-dark-mode",
+   "should": false,
+   "prompt": "Add a dark mode toggle to the settings page."
+  },
+  {
+   "id": "n-python",
+   "should": false,
+   "prompt": "Write a Python function that parses ISO 8601 dates, with a couple of examples."
+  },
+  {
+   "id": "n-explain-effect",
+   "should": false,
+   "prompt": "Explain how React useEffect cleanup functions work."
+  },
+  {
+   "id": "n-setup-eslint",
+   "should": false,
+   "prompt": "Set up ESLint with the recommended config for this project."
+  },
+  {
+   "id": "n-fix-test",
+   "should": false,
+   "prompt": "The debounce function in src/debounce.js should fire on the leading edge too. Add that option."
+  },
+  {
+   "id": "n-review-pr",
+   "should": false,
+   "prompt": "Review src/tooltip.js for bugs."
+  }
+ ],
+ "behavior": [
+  {
+   "id": "timer",
+   "target": "src/menu.js",
+   "old": [
+    "src/tooltip.js"
+   ],
+   "bad": "setTimeout\\(",
+   "legit": [
+    "src/debounce.js",
+    "setTimeout\\("
+   ],
+   "probe": [
+    "src/zz-probe.js",
+    "export function probe(el) {\n  setTimeout(() => el.focus(), 0);\n}\n"
+   ],
+   "teach": [
+    "requestAnimationFrame",
+    "await",
+    "promise",
+    "queueMicrotask",
+    "event",
+    "transitionend",
+    "ready",
+    "callback",
+    "focus after",
+    "render"
+   ],
+   "explicit": "You used setTimeout(..., 0) again in src/menu.js to wait for the menu to render before focusing the button. I've corrected this twice already. Fix it properly and make sure it doesn't happen again.",
+   "soft": "You used setTimeout(..., 0) again in src/menu.js to wait for the menu to render before focusing the button. I've corrected this twice already. Fix it."
+  },
+  {
+   "id": "console",
+   "target": "src/cart.js",
+   "old": [
+    "src/api.js"
+   ],
+   "bad": "console\\.log\\(",
+   "legit": [
+    "src/logger.js",
+    "console\\.error\\("
+   ],
+   "probe": [
+    "src/zz-probe.js",
+    "export function probe(x) {\n  console.log(\"probe\", x);\n  return x;\n}\n"
+   ],
+   "teach": [
+    "logger",
+    "debugger",
+    "remove",
+    "delete"
+   ],
+   "explicit": "There's a console.log left in src/cart.js again. This keeps happening in your PRs. Clean it up and stop it recurring.",
+   "soft": "There's a console.log left in src/cart.js again. This keeps happening in your PRs. Clean it up."
+  },
+  {
+   "id": "boundary",
+   "target": "src/renderer/panel.js",
+   "old": [],
+   "bad": "from\\s+[\"']\\.\\./main/",
+   "legit": null,
+   "probe": [
+    "src/renderer/zz-probe.js",
+    "import { openDb } from \"../main/db.js\";\n\nexport const probe = () => openDb(\"x.json\");\n"
+   ],
+   "teach": [
+    "window.api",
+    "preload",
+    "ipc",
+    "shared"
+   ],
+   "explicit": "src/renderer/panel.js imports from src/main again. Renderer code must never import main-process code; it should go through window.api from the preload. You did this before too. Fix it and make it stick.",
+   "soft": "src/renderer/panel.js imports from src/main again. Renderer code must never import main-process code; it should go through window.api from the preload. You did this before too. Fix it."
+  },
+  {
+   "id": "innerhtml",
+   "target": "src/list.js",
+   "old": [
+    "src/toast.js"
+   ],
+   "bad": "\\.innerHTML\\s*=",
+   "legit": null,
+   "probe": [
+    "src/zz-probe.js",
+    "export function probe(node, text) {\n  node.innerHTML = text;\n}\n"
+   ],
+   "teach": [
+    "textContent",
+    "el(",
+    "createElement",
+    "createTextNode",
+    "sanitiz",
+    "replaceChildren"
+   ],
+   "explicit": "You set innerHTML with user data in src/list.js again. That's an XSS hole and I've told you before. Fix it and make sure it can't come back.",
+   "soft": "You set innerHTML with user data in src/list.js again. That's an XSS hole and I've told you before. Fix it."
+  }
+ ],
+ "trigger_heldout": [
+  {
+   "id": "h-ts-ignore",
+   "should": true,
+   "prompt": "Why is there a @ts-ignore in src/api.ts again? We went over this. Just fix it."
+  },
+  {
+   "id": "h-todo-errors",
+   "should": true,
+   "prompt": "You keep leaving TODO comments instead of handling the error. Fix the one in src/upload.js."
+  },
+  {
+   "id": "h-utils-sprawl",
+   "should": true,
+   "prompt": "Every agent PR in this repo adds a new utils file instead of using the existing helpers. How do we stop that?"
+  },
+  {
+   "id": "h-n-first-bug",
+   "should": false,
+   "prompt": "The total in src/cart.js is off by one. Fix it."
+  },
+  {
+   "id": "h-n-lint-fails",
+   "should": false,
+   "prompt": "npm run lint fails on src/api.js, can you fix the errors?"
+  },
+  {
+   "id": "h-n-rename",
+   "should": false,
+   "prompt": "Rename the data variable in src/list.js to something clearer."
+  }
+ ],
+ "audit": [
+  {
+   "id": "audit-react",
+   "fixture": "audit-react",
+   "planted": "6 useEffect that only derive state (+1 legit subscription), 4 `as any`, 4 setTimeout(...,0) hacks (+1 legit debounce), 3 justification comments, 2 ui->db cross-layer imports, no lint/test/typecheck scripts",
+   "patterns": [
+    [
+     "useEffect"
+    ],
+    [
+     "as any",
+     "any"
+    ],
+    [
+     "setTimeout"
+    ]
+   ],
+   "gap": [
+    "no lint",
+    "no eslint",
+    "lint",
+    "typecheck",
+    "tests"
+   ]
+  },
+  {
+   "id": "audit-node",
+   "fixture": "audit-node",
+   "planted": "5 empty catch blocks (+1 legit logged catch), 7 TODO/FIXME/HACK/XXX markers, 2 setTimeout(...,0) hacks, no lint/test scripts",
+   "patterns": [
+    [
+     "empty catch",
+     "swallow",
+     "catch {}",
+     "catch (e) {}",
+     "empty `catch`"
+    ],
+    [
+     "TODO",
+     "HACK",
+     "FIXME"
+    ],
+    [
+     "setTimeout",
+     "timer"
+    ]
+   ],
+   "gap": [
+    "no lint",
+    "no eslint",
+    "lint",
+    "tests"
+   ]
+  }
+ ],
+ "audit_prompt": "Audit this codebase for anti-patterns that coding agents would copy if they saw them.",
+ "lang": [
+  {
+   "id": "pyutc",
+   "kind": "probe-cmd",
+   "tools": "python",
+   "target": "src/report.py",
+   "old": [
+    "src/audit.py"
+   ],
+   "bad": "utcnow\\(",
+   "legit": [
+    "src/clock.py",
+    "timezone\\.utc"
+   ],
+   "end_cmd": "ruff check src",
+   "probe": [
+    "src/zz_probe.py",
+    "from datetime import datetime\n\n\ndef probe():\n    return datetime.utcnow()\n"
+   ],
+   "probe_ok": [
+    "src/zz_probe.py",
+    "from datetime import datetime, timezone\n\n\ndef probe():\n    return datetime.now(timezone.utc)\n"
+   ],
+   "probe_cmd": "ruff check src/zz_probe.py",
+   "verify_re": "\\bruff\\b",
+   "teach": [
+    "timezone",
+    "now(",
+    "utc",
+    "aware"
+   ],
+   "soft": "You used datetime.utcnow() again in src/report.py to stamp the report. It returns naive datetimes and I've told you before. Fix it.",
+   "explicit": "You used datetime.utcnow() again in src/report.py to stamp the report. It returns naive datetimes and I've told you before. Fix it properly and make sure it doesn't happen again."
+  },
+  {
+   "id": "tsany",
+   "kind": "probe-cmd",
+   "tools": "ts",
+   "target": "src/api.ts",
+   "old": [
+    "src/store.ts"
+   ],
+   "bad": "\\bas any\\b|: any\\b",
+   "legit": [
+    "src/routes.ts",
+    "as const"
+   ],
+   "end_cmd": "npx eslint src && npx tsc --noEmit",
+   "probe": [
+    "src/zz-probe.ts",
+    "export const probe = (v: unknown) => (v as any).name;\n"
+   ],
+   "probe_ok": [
+    "src/zz-probe.ts",
+    "export const probe = (v: unknown) => (v as { name: string }).name;\n"
+   ],
+   "probe_cmd": "npx eslint src/zz-probe.ts",
+   "verify_re": "\\beslint\\b|\\btsc\\b|npm run (lint|typecheck)",
+   "teach": [
+    "unknown",
+    "guard",
+    "narrow",
+    "parse",
+    "validat",
+    "schema",
+    "zod",
+    "specific type",
+    "generic",
+    "interface"
+   ],
+   "soft": "You cast the response to `any` again in src/api.ts. I've told you before, we keep ending up with `as any` all over this project. Fix it.",
+   "explicit": "You cast the response to `any` again in src/api.ts. I've told you before, we keep ending up with `as any` all over this project. Fix it properly and make sure it doesn't happen again."
+  },
+  {
+   "id": "cents",
+   "kind": "test",
+   "tools": "js",
+   "target": "src/invoice.js",
+   "old": [
+    "src/receipt.js"
+   ],
+   "bad": null,
+   "fixed_cmd": "node --input-type=module -e \"import {invoiceTotal as a} from './src/invoice.js'; import {refundTotal as b} from './src/receipt.js'; const L=[{price:19.99,qty:3},{price:0.1,qty:3},{price:4.35,qty:7}]; for (const f of [a,b]) for (const t of [0.0825,0.07,0.2]) { const v=f(L,t); if (Math.abs(v*100-Math.round(v*100))>1e-9) { console.log('fractional cents', f.name, t, v); process.exit(1); } }\"",
+   "legit": null,
+   "end_cmd": "npm test",
+   "probe": [
+    "src/invoice.js",
+    "export function lineTotal(price, qty) {\n  return price * qty;\n}\n\nexport function invoiceTotal(lines, taxRate) {\n  const subtotal = lines.reduce((sum, l) => sum + lineTotal(l.price, l.qty), 0);\n  return subtotal + subtotal * taxRate;\n}\n"
+   ],
+   "probe_cmd": "node --test",
+   "verify_re": "node --test|npm test|npm run test",
+   "teach": [],
+   "soft": "invoiceTotal in src/invoice.js returns fractional cents again (19.99 x 3 at 8.25% tax gives 64.917525). Totals have to be whole cents. I've told you this before. Fix it.",
+   "explicit": "invoiceTotal in src/invoice.js returns fractional cents again (19.99 x 3 at 8.25% tax gives 64.917525). Totals have to be whole cents. I've told you this before. Fix it properly and make sure it doesn't happen again."
+  }
+ ]
 }

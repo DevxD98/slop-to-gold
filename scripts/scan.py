@@ -9,7 +9,7 @@ import re
 import sys
 from collections import Counter
 
-SKIP = {".git", "node_modules", "dist", "build", ".next", "venv", ".venv", "__pycache__", "target"}
+SKIP = {".git", ".claude", "node_modules", "dist", "build", ".next", "venv", ".venv", "__pycache__", "target"}
 EXT = {".ts", ".tsx", ".js", ".jsx", ".py", ".go", ".rs", ".java", ".swift"}
 
 PATTERNS = {

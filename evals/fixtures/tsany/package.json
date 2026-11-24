@@ -1,0 +1,6 @@
+{
+  "name": "client",
+  "private": true,
+  "type": "module",
+  "scripts": { "lint": "eslint src", "typecheck": "tsc --noEmit" }
+}

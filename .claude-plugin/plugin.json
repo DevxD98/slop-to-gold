@@ -1,6 +1,6 @@
 {
   "name": "slop-to-gold",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Turns repeated agent corrections into lint rules, types and tests, so the same AI slop can't come back.",
   "author": {
     "name": "DevxD98",
