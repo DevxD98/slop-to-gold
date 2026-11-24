@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.svg" width="560" alt="slop-to-gold: a blob of slop goes through a lint check and comes out a gold bar"></p>
+
 # slop-to-gold
 
 A single [Claude Code skill](https://docs.claude.com/en/docs/claude-code/skills) that turns agent corrections into permanent, deterministic checks instead of prose rules.
