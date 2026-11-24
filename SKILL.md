@@ -29,5 +29,5 @@ A skill is advice and can be skipped. Enforcement lives in a PostToolUse hook th
 ## Done means
 
 - The correction exists as a check that fails on the bad pattern, and you saw it fail.
-- Old occurrences are listed or cleaned up.
+- Other copies are fixed, or allowlisted file by file and listed. Lint passes.
 - Any lint message you wrote tells the agent the root-cause fix, not just "don't".

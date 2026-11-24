@@ -43,6 +43,14 @@ ARM_NAMES = {
     "auto-v1": "Loads on its own (old description)",
     "without": "Skill blocked (baseline)",
 }
+HELDOUT_LABELS = {
+    "h-ts-ignore": "\"@ts-ignore again, we went over this\"",
+    "h-todo-errors": "\"you keep leaving TODOs\"",
+    "h-utils-sprawl": "\"every agent PR adds a new utils file\"",
+    "h-n-first-bug": "first-time bug report (near miss)",
+    "h-n-lint-fails": "\"npm run lint fails, fix it\" (near miss)",
+    "h-n-rename": "rename a variable",
+}
 RIVAL_NAMES = [
     ("self-improvement:auto", "self-improvement (loads on its own)"),
     ("self-improvement:invoked", "self-improvement (/self-improvement)"),
@@ -129,8 +137,57 @@ def main():
             md.append(f"| {ARM_NAMES[a]} | ${sum(costs) / max(len(costs), 1):.2f} | {sum(turns) / max(len(turns), 1):.1f} | "
                       f"{sum(bool(r.get('prose_added')) for r in rs)} | {sum(r.get('disables_added', 0) for r in rs)} |")
 
-    # Versus other skills: same plain correction, one row per skill and arm.
+    # Clean rerun (v3): every arm with --setting-sources project,local and only the skill under test.
+    clean = load("clean.jsonl")
     riv = load("rivals.jsonl")
+    if clean:
+        labels = [("slop-to-gold:auto", "slop-to-gold (loads on its own)"), ("slop-to-gold:invoked", "slop-to-gold (/slop-to-gold)"),
+                  ("self-improvement:auto", "self-improvement (loads on its own)"), ("self-improvement:invoked", "self-improvement (/self-improvement)"),
+                  ("revise-claude-md:invoked", "Anthropic /revise-claude-md"), ("receiving-code-review:invoked", "superpowers receiving-code-review"),
+                  ("none:-", "no skill (baseline)")]
+        arms = [(lab, [r for r in clean if r["arm"] == k]) for k, lab in labels]
+        arms = [(lab, rs) for lab, rs in arms if rs]
+        riv = None
+        cmp_metrics = [("enforced", "Added a check that fails on it"), ("teaches_fix", "Check message names the fix"),
+                       ("lint_clean_end", "Lint passes at the end")]
+        charts.append({"file": "compare.svg", "title": "Versus other skills that learn from corrections",
+                       "subtitle": "Same plain correction, clean setup with only that skill installed. 8 runs per row.",
+                       "series": [l for _, l in cmp_metrics],
+                       "rows": [{"label": name, "vals": [frac(rs, k) for k, _ in cmp_metrics]} for name, rs in arms],
+                       "note": "Graded from files: a hidden probe file with the bad pattern is linted after each run."})
+        md.append("\n**Versus other skills, clean setup** (plain correction)\n\n| Skill | Loaded | Added a failing check | Message names fix "
+                  "| Fixed other copies | Lint passes at end | Wrote prose/notes | Avg cost (API-price estimate) |\n|---|---|---|---|---|---|---|---|")
+        for name, rs in arms:
+            costs = [r["cost"] for r in rs if r.get("cost")]
+            used = [r for r in rs if r.get("skill_used") is not None]
+            md.append(f"| {name} | " + (f"{sum(r['skill_used'] for r in used)}/{len(used)}" if used else "n/a") + " | "
+                      + " | ".join(frac(rs, k)["txt"] for k in ("enforced", "teaches_fix", "cleaned_old", "lint_clean_end"))
+                      + f" | {sum(bool(r.get('prose_added')) for r in rs)}/{len(rs)} | ${sum(costs) / max(len(costs), 1):.2f} |")
+    ct = load("clean-trigger.jsonl")
+    if ct:
+        cases = json.load(open(os.path.join(HERE, "cases.json")))
+        held = {c["id"] for c in cases["trigger_heldout"]}
+        by = defaultdict(list)
+        for r in ct:
+            by[(r["should"], r["id"])].append(r["fired"])
+        rows = []
+        for should, hd in ((True, "Should load"), (False, "Should not load")):
+            for tag, ids in (("tuned on", [c["id"] for c in cases["trigger"]]),
+                             ("held out", [c["id"] for c in cases["trigger_heldout"]])):
+                ids = [i for i in ids if (should, i) in by]
+                rows.append({"section": f"{hd} · {tag}"})
+                for i in ids:
+                    f = by[(should, i)]
+                    rows.append({"label": HELDOUT_LABELS.get(i, TRIGGER_LABELS.get(i, i)), "vals": [{"v": sum(f) / len(f), "txt": f"{sum(f)}/{len(f)}"}]})
+        charts.append({"file": "trigger-clean.svg", "title": "Does it load on prompts it was never tuned on?",
+                       "subtitle": "Clean setup, only slop-to-gold installed. Share of runs that loaded the skill.",
+                       "series": ["Loaded the skill"], "rows": rows,
+                       "note": "Headless claude -p, Sonnet, 2 runs per prompt, first 4 turns. Prompts in evals/cases.json."})
+        md.append("\n**Trigger evals, clean setup**\n\n| Prompts | Recall (should load) | False triggers |\n|---|---|---|")
+        for tag, pick in (("Tuned on", lambda i: i not in held), ("Held out", lambda i: i in held)):
+            tp = sum(sum(f) for (s_, i), f in by.items() if s_ and pick(i)); pos = sum(len(f) for (s_, i), f in by.items() if s_ and pick(i))
+            fp = sum(sum(f) for (s_, i), f in by.items() if not s_ and pick(i)); neg = sum(len(f) for (s_, i), f in by.items() if not s_ and pick(i))
+            md.append(f"| {tag} | {tp}/{pos} | {fp}/{neg} |")
     if riv:
         arms = [("slop-to-gold (loads on its own)", auto2 or soft_rows["auto"]),
                 ("slop-to-gold (/slop-to-gold)", soft_rows["invoked"])]

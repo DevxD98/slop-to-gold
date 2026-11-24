@@ -184,6 +184,67 @@ def behavior_job(case, variant, arm, rep, args):
             "cost": info["cost"], "turns": info["turns"], "secs": round(secs, 1), **g}
 
 
+# Clean mode: every arm runs with --setting-sources project,local, so none of the user's own
+# skills or plugins are present. The skill under test (if any) is copied into the project.
+CLEAN = ["--setting-sources", "project,local"]
+CLEAN_ARMS = [("slop-to-gold", "auto"), ("slop-to-gold", "invoked"), ("none", "-"),
+              ("self-improvement", "auto"), ("self-improvement", "invoked"),
+              ("revise-claude-md", "invoked"), ("receiving-code-review", "invoked")]
+
+
+def install(name, src, d):
+    """Copy a skill folder (or a command file) into the run's project .claude/."""
+    if src.endswith(".md"):
+        os.makedirs(os.path.join(d, ".claude", "commands"), exist_ok=True)
+        shutil.copy(src, os.path.join(d, ".claude", "commands", name + ".md"))
+    else:
+        dst = os.path.join(d, ".claude", "skills", name)
+        shutil.copytree(src, dst, ignore=shutil.ignore_patterns(
+            ".git", ".github", "evals", "tests", "docs", "node_modules", ".claude-plugin", "*.png", "README.md"))
+
+
+def loaded_from(transcript, name):
+    for line in open(transcript, errors="ignore"):
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue
+        msg = e.get("message") if isinstance(e, dict) else None
+        for c in (msg.get("content") if isinstance(msg, dict) and isinstance(msg.get("content"), list) else []):
+            if isinstance(c, dict) and c.get("type") == "tool_use":
+                i = json.dumps(c.get("input", {}))
+                if (c["name"] == "Skill" and name in i) or (c["name"] == "Read" and f"skills/{name}/" in i):
+                    return True
+    return False
+
+
+def clean_job(case, name, arm, rep, args):
+    rid = f"cln-{name}-{case['id']}-{arm}-r{rep}"
+    d = fresh_copy(case["id"], args.work, rid, args.eslint_modules)
+    if name != "none":
+        install(name, args.src[name], d)
+    before = snapshot(d)
+    extra = CLEAN + ["--permission-mode", "acceptEdits", "--max-turns", "40", "--max-budget-usd", "3",
+                     "--allowedTools", *LINT_TOOLS]
+    prompt = f"/{name} {case['soft']}" if arm == "invoked" else case["soft"]
+    tpath = os.path.join(args.work, "transcripts", rid + ".jsonl")
+    secs, info = run_claude(prompt, d, extra, tpath)
+    g = grade(case, d, args.eslint_modules, info, before)
+    used = None if name == "none" else (arm == "invoked" or loaded_from(tpath, name))
+    return {"id": case["id"], "variant": "soft", "arm": f"{name}:{arm}", "rep": rep, "skill_used": used,
+            "cost": info["cost"], "turns": info["turns"], "secs": round(secs, 1), **g}
+
+
+def clean_trigger_job(case, rep, args):
+    rid = f"clt-{case['id']}-r{rep}"
+    d = fresh_copy("timer", args.work, rid, args.eslint_modules)
+    install(SKILL, args.src[SKILL], d)
+    tpath = os.path.join(args.work, "transcripts", rid + ".jsonl")
+    secs, info = run_claude(case["prompt"], d, CLEAN + ["--max-turns", "4", "--max-budget-usd", "1"], tpath)
+    return {"id": case["id"], "rep": rep, "should": case["should"], "fired": loaded_from(tpath, SKILL),
+            "cost": info["cost"], "secs": round(secs, 1)}
+
+
 def rival_job(case, name, arm, rep, args):
     """Same soft correction, with slop-to-gold blocked and a rival skill present instead."""
     rv = RIVALS[name]
@@ -208,7 +269,8 @@ def rival_job(case, name, arm, rep, args):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["trigger", "behavior", "rival"])
+    ap.add_argument("mode", choices=["trigger", "behavior", "rival", "clean", "clean-trigger"])
+    ap.add_argument("--src", action="append", default=[], help="clean: name=path of a skill folder or command file")
     ap.add_argument("--rival", default="", help="rival: which entry of RIVALS")
     ap.add_argument("--rival-src", default="", help="rival: path to the rival skill folder or command file")
     ap.add_argument("--reps", type=int, default=2)
@@ -221,12 +283,27 @@ def main():
     ap.add_argument("--out", default="", help="results file name (default: <mode>.jsonl)")
     args = ap.parse_args()
     args.eslint_modules = os.path.abspath(args.eslint_modules)
+    args.src = dict(x.split("=", 1) for x in args.src)
+    args.src.setdefault(SKILL, os.path.dirname(HERE))
     os.makedirs(os.path.join(args.work, "transcripts"), exist_ok=True)
     os.makedirs(os.path.join(HERE, "results"), exist_ok=True)
     out = os.path.join(HERE, "results", args.out or f"{args.mode}.jsonl")
 
     jobs = []
-    if args.mode == "rival":
+    if args.mode == "clean":
+        for c in CASES["behavior"]:
+            if args.only and c["id"] != args.only:
+                continue
+            for name, arm in CLEAN_ARMS:
+                if (args.arm and f"{name}:{arm}" != args.arm) or (name != "none" and name not in args.src):
+                    continue
+                for r in range(args.reps):
+                    jobs.append((clean_job, (c, name, arm, r, args)))
+    elif args.mode == "clean-trigger":
+        for c in CASES["trigger"] + CASES["trigger_heldout"]:
+            for r in range(args.reps):
+                jobs.append((clean_trigger_job, (c, r, args)))
+    elif args.mode == "rival":
         for c in CASES["behavior"]:
             for arm in RIVALS[args.rival]["arms"]:
                 for r in range(args.reps):

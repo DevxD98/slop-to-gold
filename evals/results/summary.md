@@ -41,14 +41,21 @@
 | Skill invoked (/slop-to-gold) | $0.16 | 13.0 | 0 | 0 |
 | Skill blocked (baseline) | $0.15 | 12.1 | 0 | 0 |
 
-**Versus other skills** (plain correction)
+**Versus other skills, clean setup** (plain correction)
 
-| Skill | Added a failing check | Message names fix | Fixed other copies | Lint passes at end | Wrote prose/notes | Avg cost |
-|---|---|---|---|---|---|---|
-| slop-to-gold (loads on its own) | 8/8 | 7/8 | 6/8 | 6/8 | 0/8 | $0.15 |
-| slop-to-gold (/slop-to-gold) | 8/8 | 7/8 | 8/8 | 8/8 | 0/8 | $0.16 |
-| self-improvement (loads on its own) | 1/8 | 1/8 | 3/8 | 8/8 | 0/8 | $0.11 |
-| self-improvement (/self-improvement) | 1/8 | 1/8 | 3/8 | 8/8 | 7/8 | $0.17 |
-| Anthropic /revise-claude-md | 1/8 | 1/8 | 2/8 | 8/8 | 0/8 | $0.12 |
-| superpowers receiving-code-review | 0/8 | 0/8 | 3/8 | 8/8 | 0/8 | $0.13 |
-| no skill (baseline) | 0/8 | 0/8 | 2/8 | 8/8 | 0/8 | $0.11 |
+| Skill | Loaded | Added a failing check | Message names fix | Fixed other copies | Lint passes at end | Wrote prose/notes | Avg cost (API-price estimate) |
+|---|---|---|---|---|---|---|---|
+| slop-to-gold (loads on its own) | 8/8 | 8/8 | 8/8 | 8/8 | 8/8 | 0/8 | $0.10 |
+| slop-to-gold (/slop-to-gold) | 8/8 | 8/8 | 8/8 | 8/8 | 8/8 | 0/8 | $0.10 |
+| self-improvement (loads on its own) | 5/8 | 0/8 | 0/8 | 3/8 | 8/8 | 5/8 | $0.09 |
+| self-improvement (/self-improvement) | 8/8 | 0/8 | 0/8 | 2/8 | 8/8 | 8/8 | $0.10 |
+| Anthropic /revise-claude-md | 8/8 | 0/8 | 0/8 | 2/8 | 8/8 | 2/8 | $0.05 |
+| superpowers receiving-code-review | 8/8 | 0/8 | 0/8 | 2/8 | 8/8 | 0/8 | $0.06 |
+| no skill (baseline) | n/a | 0/8 | 0/8 | 2/8 | 8/8 | 0/8 | $0.04 |
+
+**Trigger evals, clean setup**
+
+| Prompts | Recall (should load) | False triggers |
+|---|---|---|
+| Tuned on | 12/12 | 0/12 |
+| Held out | 5/6 | 0/6 |

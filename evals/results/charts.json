@@ -411,11 +411,11 @@
  {
   "file": "compare.svg",
   "title": "Versus other skills that learn from corrections",
-  "subtitle": "Same plain correction (\"you did X again, fix it\"), 8 runs per skill (4 scenarios x 2).",
+  "subtitle": "Same plain correction, clean setup with only that skill installed. 8 runs per row.",
   "series": [
    "Added a check that fails on it",
    "Check message names the fix",
-   "Fixed other copies too"
+   "Lint passes at the end"
   ],
   "rows": [
    {
@@ -426,12 +426,12 @@
       "txt": "8/8"
      },
      {
-      "v": 0.875,
-      "txt": "7/8"
+      "v": 1.0,
+      "txt": "8/8"
      },
      {
-      "v": 0.75,
-      "txt": "6/8"
+      "v": 1.0,
+      "txt": "8/8"
      }
     ]
    },
@@ -443,8 +443,8 @@
       "txt": "8/8"
      },
      {
-      "v": 0.875,
-      "txt": "7/8"
+      "v": 1.0,
+      "txt": "8/8"
      },
      {
       "v": 1.0,
@@ -456,16 +456,16 @@
     "label": "self-improvement (loads on its own)",
     "vals": [
      {
-      "v": 0.125,
-      "txt": "1/8"
+      "v": 0.0,
+      "txt": "0/8"
      },
      {
-      "v": 0.125,
-      "txt": "1/8"
+      "v": 0.0,
+      "txt": "0/8"
      },
      {
-      "v": 0.375,
-      "txt": "3/8"
+      "v": 1.0,
+      "txt": "8/8"
      }
     ]
    },
@@ -473,16 +473,16 @@
     "label": "self-improvement (/self-improvement)",
     "vals": [
      {
-      "v": 0.125,
-      "txt": "1/8"
+      "v": 0.0,
+      "txt": "0/8"
      },
      {
-      "v": 0.125,
-      "txt": "1/8"
+      "v": 0.0,
+      "txt": "0/8"
      },
      {
-      "v": 0.375,
-      "txt": "3/8"
+      "v": 1.0,
+      "txt": "8/8"
      }
     ]
    },
@@ -490,16 +490,16 @@
     "label": "Anthropic /revise-claude-md",
     "vals": [
      {
-      "v": 0.125,
-      "txt": "1/8"
+      "v": 0.0,
+      "txt": "0/8"
      },
      {
-      "v": 0.125,
-      "txt": "1/8"
+      "v": 0.0,
+      "txt": "0/8"
      },
      {
-      "v": 0.25,
-      "txt": "2/8"
+      "v": 1.0,
+      "txt": "8/8"
      }
     ]
    },
@@ -515,8 +515,8 @@
       "txt": "0/8"
      },
      {
-      "v": 0.375,
-      "txt": "3/8"
+      "v": 1.0,
+      "txt": "8/8"
      }
     ]
    },
@@ -532,12 +532,197 @@
       "txt": "0/8"
      },
      {
-      "v": 0.25,
-      "txt": "2/8"
+      "v": 1.0,
+      "txt": "8/8"
      }
     ]
    }
   ],
   "note": "Graded from files: a hidden probe file with the bad pattern is linted after each run."
+ },
+ {
+  "file": "trigger-clean.svg",
+  "title": "Does it load on prompts it was never tuned on?",
+  "subtitle": "Clean setup, only slop-to-gold installed. Share of runs that loaded the skill.",
+  "series": [
+   "Loaded the skill"
+  ],
+  "rows": [
+   {
+    "section": "Should load \u00b7 tuned on"
+   },
+   {
+    "label": "\"setTimeout again, told you last week\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"agents keep writing useEffect\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"audit for patterns agents copy\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"tired of reviewing every line\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"as any again, third time\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"our agent code is full of slop\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "section": "Should load \u00b7 held out"
+   },
+   {
+    "label": "\"@ts-ignore again, we went over this\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"you keep leaving TODOs\"",
+    "vals": [
+     {
+      "v": 0.5,
+      "txt": "1/2"
+     }
+    ]
+   },
+   {
+    "label": "\"every agent PR adds a new utils file\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "section": "Should not load \u00b7 tuned on"
+   },
+   {
+    "label": "add a dark mode toggle",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "write a date parser in Python",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "explain useEffect cleanup",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "set up ESLint (near miss)",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "add a debounce option",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "review a file for bugs (near miss)",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "section": "Should not load \u00b7 held out"
+   },
+   {
+    "label": "first-time bug report (near miss)",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "\"npm run lint fails, fix it\" (near miss)",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "rename a variable",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   }
+  ],
+  "note": "Headless claude -p, Sonnet, 2 runs per prompt, first 4 turns. Prompts in evals/cases.json."
  }
 ]

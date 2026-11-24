@@ -158,5 +158,37 @@
       "explicit": "You set innerHTML with user data in src/list.js again. That's an XSS hole and I've told you before. Fix it and make sure it can't come back.",
       "soft": "You set innerHTML with user data in src/list.js again. That's an XSS hole and I've told you before. Fix it."
     }
+  ],
+  "trigger_heldout": [
+    {
+      "id": "h-ts-ignore",
+      "should": true,
+      "prompt": "Why is there a @ts-ignore in src/api.ts again? We went over this. Just fix it."
+    },
+    {
+      "id": "h-todo-errors",
+      "should": true,
+      "prompt": "You keep leaving TODO comments instead of handling the error. Fix the one in src/upload.js."
+    },
+    {
+      "id": "h-utils-sprawl",
+      "should": true,
+      "prompt": "Every agent PR in this repo adds a new utils file instead of using the existing helpers. How do we stop that?"
+    },
+    {
+      "id": "h-n-first-bug",
+      "should": false,
+      "prompt": "The total in src/cart.js is off by one. Fix it."
+    },
+    {
+      "id": "h-n-lint-fails",
+      "should": false,
+      "prompt": "npm run lint fails on src/api.js, can you fix the errors?"
+    },
+    {
+      "id": "h-n-rename",
+      "should": false,
+      "prompt": "Rename the data variable in src/list.js to something clearer."
+    }
   ]
 }
