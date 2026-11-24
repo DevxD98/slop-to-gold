@@ -1,0 +1,162 @@
+{
+  "trigger": [
+    {
+      "id": "t-repeat-timer",
+      "should": true,
+      "prompt": "You used setTimeout(..., 0) in src/menu.js to wait for the menu to render. I told you last week not to do that, and you did it again. Fix it."
+    },
+    {
+      "id": "t-recurring-effect",
+      "should": true,
+      "prompt": "Agents keep writing useEffect for derived state in this repo. Every PR has one. Can we stop this happening for good?"
+    },
+    {
+      "id": "t-audit",
+      "should": true,
+      "prompt": "Audit this codebase for anti-patterns that coding agents would copy if they saw them."
+    },
+    {
+      "id": "t-trust-prs",
+      "should": true,
+      "prompt": "I'm tired of reviewing every line of the PRs Claude writes for this project. How do I make them trustworthy without reading every diff?"
+    },
+    {
+      "id": "t-third-time",
+      "should": true,
+      "prompt": "Again with the `as any` casts. That's the third time I'm telling you. Remove it."
+    },
+    {
+      "id": "t-slop",
+      "should": true,
+      "prompt": "Our agent-written code is full of slop. What should we do about it in this repo?"
+    },
+    {
+      "id": "n-dark-mode",
+      "should": false,
+      "prompt": "Add a dark mode toggle to the settings page."
+    },
+    {
+      "id": "n-python",
+      "should": false,
+      "prompt": "Write a Python function that parses ISO 8601 dates, with a couple of examples."
+    },
+    {
+      "id": "n-explain-effect",
+      "should": false,
+      "prompt": "Explain how React useEffect cleanup functions work."
+    },
+    {
+      "id": "n-setup-eslint",
+      "should": false,
+      "prompt": "Set up ESLint with the recommended config for this project."
+    },
+    {
+      "id": "n-fix-test",
+      "should": false,
+      "prompt": "The debounce function in src/debounce.js should fire on the leading edge too. Add that option."
+    },
+    {
+      "id": "n-review-pr",
+      "should": false,
+      "prompt": "Review src/tooltip.js for bugs."
+    }
+  ],
+  "behavior": [
+    {
+      "id": "timer",
+      "target": "src/menu.js",
+      "old": [
+        "src/tooltip.js"
+      ],
+      "bad": "setTimeout\\(",
+      "legit": [
+        "src/debounce.js",
+        "setTimeout\\("
+      ],
+      "probe": [
+        "src/zz-probe.js",
+        "export function probe(el) {\n  setTimeout(() => el.focus(), 0);\n}\n"
+      ],
+      "teach": [
+        "requestAnimationFrame",
+        "await",
+        "promise",
+        "queueMicrotask",
+        "event",
+        "transitionend",
+        "ready",
+        "callback",
+        "focus after",
+        "render"
+      ],
+      "explicit": "You used setTimeout(..., 0) again in src/menu.js to wait for the menu to render before focusing the button. I've corrected this twice already. Fix it properly and make sure it doesn't happen again.",
+      "soft": "You used setTimeout(..., 0) again in src/menu.js to wait for the menu to render before focusing the button. I've corrected this twice already. Fix it."
+    },
+    {
+      "id": "console",
+      "target": "src/cart.js",
+      "old": [
+        "src/api.js"
+      ],
+      "bad": "console\\.log\\(",
+      "legit": [
+        "src/logger.js",
+        "console\\.error\\("
+      ],
+      "probe": [
+        "src/zz-probe.js",
+        "export function probe(x) {\n  console.log(\"probe\", x);\n  return x;\n}\n"
+      ],
+      "teach": [
+        "logger",
+        "debugger",
+        "remove",
+        "delete"
+      ],
+      "explicit": "There's a console.log left in src/cart.js again. This keeps happening in your PRs. Clean it up and stop it recurring.",
+      "soft": "There's a console.log left in src/cart.js again. This keeps happening in your PRs. Clean it up."
+    },
+    {
+      "id": "boundary",
+      "target": "src/renderer/panel.js",
+      "old": [],
+      "bad": "from\\s+[\"']\\.\\./main/",
+      "legit": null,
+      "probe": [
+        "src/renderer/zz-probe.js",
+        "import { openDb } from \"../main/db.js\";\n\nexport const probe = () => openDb(\"x.json\");\n"
+      ],
+      "teach": [
+        "window.api",
+        "preload",
+        "ipc",
+        "shared"
+      ],
+      "explicit": "src/renderer/panel.js imports from src/main again. Renderer code must never import main-process code; it should go through window.api from the preload. You did this before too. Fix it and make it stick.",
+      "soft": "src/renderer/panel.js imports from src/main again. Renderer code must never import main-process code; it should go through window.api from the preload. You did this before too. Fix it."
+    },
+    {
+      "id": "innerhtml",
+      "target": "src/list.js",
+      "old": [
+        "src/toast.js"
+      ],
+      "bad": "\\.innerHTML\\s*=",
+      "legit": null,
+      "probe": [
+        "src/zz-probe.js",
+        "export function probe(node, text) {\n  node.innerHTML = text;\n}\n"
+      ],
+      "teach": [
+        "textContent",
+        "el(",
+        "createElement",
+        "createTextNode",
+        "sanitiz",
+        "replaceChildren"
+      ],
+      "explicit": "You set innerHTML with user data in src/list.js again. That's an XSS hole and I've told you before. Fix it and make sure it can't come back.",
+      "soft": "You set innerHTML with user data in src/list.js again. That's an XSS hole and I've told you before. Fix it."
+    }
+  ]
+}

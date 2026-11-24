@@ -1,0 +1,15 @@
+case	expected	actual	ms	result
+lint passes -> silent	0	0	2547	PASS
+lint fails -> feedback	2	2	263	PASS
+typecheck fails -> feedback	2	2	469	PASS
+both fail -> both reported	2	2	400	PASS
+no node_modules -> skip	0	0	34	PASS
+no lint/typecheck scripts -> skip	0	0	38	PASS
+non-JS file -> skip	0	0	28	PASS
+file in node_modules -> skip	0	0	31	PASS
+empty payload -> skip	0	0	28	PASS
+malformed JSON -> skip	0	0	28	PASS
+path with spaces	2	2	216	PASS
+monorepo uses nearest package	2	2	218	PASS
+tool_response.filePath fallback	2	2	214	PASS
+slow lint -> timeout reported	2	2	2095	PASS

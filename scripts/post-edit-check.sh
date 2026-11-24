@@ -30,7 +30,7 @@ has_script() { jq -e --arg s "$1" '.scripts[$s] // empty' "$dir/package.json" >/
 failed=""
 for s in lint typecheck; do
   has_script "$s" || continue
-  out=$(cd "$dir" && timeout 60 npm run --silent "$s" 2>&1)
+  out=$(cd "$dir" && timeout "${SLOP_HOOK_TIMEOUT:-60}" npm run --silent "$s" 2>&1)
   rc=$?
   if [ $rc -ne 0 ]; then
     failed="${failed}\n[slop-to-gold] 'npm run $s' failed (exit $rc) in $dir after editing $file:\n$(printf '%s' "$out" | tail -n 25)\n"
