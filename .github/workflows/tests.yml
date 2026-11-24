@@ -1,0 +1,20 @@
+name: tests
+on:
+  push:
+  pull_request:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Static checks
+        run: python3 tests/test_static.py
+      - name: Scan script tests
+        run: python3 tests/test_scan.py
+      - name: Hook contract tests
+        run: |
+          command -v jq || sudo apt-get install -y jq
+          bash tests/test_hook.sh

@@ -6,6 +6,8 @@
 A <a href="https://docs.claude.com/en/docs/claude-code/skills">Claude Code skill</a> that turns repeated agent mistakes into lint rules, types and tests,<br>so the same AI slop can't come back.
 </p>
 
+<p align="center"><a href="https://github.com/DevxD98/slop-to-gold/actions/workflows/tests.yml"><img src="https://github.com/DevxD98/slop-to-gold/actions/workflows/tests.yml/badge.svg" alt="tests"></a></p>
+
 <p align="center">
 <a href="#install">Install</a> ·
 <a href="#what-it-looks-like">What it looks like</a> ·
