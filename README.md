@@ -18,6 +18,8 @@ A <a href="https://docs.claude.com/en/docs/claude-code/skills">Claude Code skill
 
 Agents copy whatever the codebase already shows them, so slop spreads. Telling the agent "don't do that" works until the next session forgets. This skill makes the codebase the strongest input instead: when you correct an agent, the fix becomes a lint rule, type, test or dependency boundary first. Prose (AGENTS.md, CLAUDE.md, comments) is the last resort.
 
+**Does it work?** After a plain "you did X again, fix it", Claude with this skill left a lint rule that catches the mistake in 8 of 8 test runs. Without it: 0 of 8. Three other popular correction-learning skills managed at most 1 of 8. [See the evals](#testing).
+
 Inspired by the talk ["slop into gold"](https://youtu.be/O_zcc6Xl12g). See [Inspiration](#inspiration).
 
 ## Install
@@ -136,7 +138,7 @@ Added here, not from the talk: packaging as a single skill with two modes, the `
 
 ## Testing
 
-A skill is a prompt, so "does it work" is really five questions. Each needs a different kind of test:
+A skill is a prompt, so "does it work" is really six questions. Each needs a different kind of test:
 
 | Question | Test type | How | Result |
 |---|---|---|---|
@@ -145,6 +147,7 @@ A skill is a prompt, so "does it work" is really five questions. Each needs a di
 | Does the hook behave in every case? | Contract tests | `tests/test_hook.sh`: 14 cases covering pass, lint fail, typecheck fail, no `node_modules`, a non-JS file, malformed JSON, paths with spaces, a monorepo, a timeout | 14/14 pass |
 | Does Claude load the skill at the right time? | Trigger evals | 12 prompts (6 should load it, 6 should not, including near misses) x 2 runs in headless `claude -p` | 12/12 loaded when they should, 0/12 when they shouldn't |
 | Does it change what Claude does? | Behavior A/B evals | 4 correction scenarios x 3 arms x 2 runs, graded from the files each run left behind | see below |
+| Is it better than the alternatives? | Head-to-head evals | Same scenarios with 3 other correction-learning skills in place of this one, 32 runs | 8/8 added a failing check, against at most 1/8 |
 
 ### Does it change what Claude does?
 
@@ -168,6 +171,20 @@ When the user also says "make sure it can't come back", Claude adds a check with
 
 The first description loaded the skill for complaints about slop, recurring patterns, audits and trust, but only half the time for a plain repeat correction like "you did X again, fix it". In the behavior runs it never loaded for one at all (0/8). The description now names those signals ("again", "I told you", "keeps happening", "third time") and says the skill applies even when the user only asks for a fix. With that change, it loaded in 12 of 12 trigger runs where it should and 8 of 8 behavior runs, and it still never loaded for unrelated or near-miss tasks.
 
+### Versus other skills that learn from corrections
+
+Other skills already try to stop repeat mistakes, so the same plain correction was run with each of them instead, with slop-to-gold blocked:
+
+- [**self-improvement**](https://github.com/pskoett/pskoett-ai-skills) (pskoett, commit `878b0e4`): logs corrections to `.learnings/` and promotes them to `CLAUDE.md`.
+- [**/revise-claude-md**](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-md-management) (Anthropic's `claude-md-management` plugin, commit `5cec671`): proposes `CLAUDE.md` additions from the session.
+- [**receiving-code-review**](https://github.com/obra/superpowers) (superpowers 7.0.2): how to act on feedback rigorously.
+
+![Versus other skills](docs/compare.svg)
+
+All of them fix the reported line. None of them reliably leaves anything behind that stops the mistake coming back: at most 1 run in 8 added a check that fails on the probe, against 8 in 8 for slop-to-gold. `self-improvement`, when invoked, wrote a careful note in `.learnings/LEARNINGS.md` in 7 of 8 runs, but a note doesn't fail a build, and the probe file passed lint every time. `/revise-claude-md` drafts its `CLAUDE.md` diff and waits for approval, so in a headless run nothing was written. slop-to-gold costs about the same per run ($0.15 to $0.16, against $0.11 to $0.17).
+
+The gap slop-to-gold still has: when it loads on its own it asks before touching files you didn't mention, so "fixed other copies" is 6/8 rather than 8/8. That's deliberate.
+
 ### Limits of these numbers
 
 - The samples are small: 2 runs per cell. Read the bars as direction, not precision.
@@ -176,6 +193,8 @@ The first description loaded the skill for complaints about slop, recurring patt
 - The boundary scenario has no second copy of the mistake, so "fixed other copies" passes trivially there.
 - "Names the fix" is a keyword match on the lint message (for example `textContent` for `innerHTML`).
 - The new description was tested on the same prompts it was written to fix. Prompts it hasn't seen may do worse.
+- In the comparison runs slop-to-gold is still listed (only blocked), and Claude sometimes reached for it first, which may be why `self-improvement` never loaded on its own (0/8). The invoked rows avoid that and show the same result.
+- The comparison runs were made on a different day from the slop-to-gold and baseline rows, on the same fixtures and prompts.
 
 Full tables: [`evals/results/summary.md`](evals/results/summary.md). Raw rows: `evals/results/*.jsonl`.
 
@@ -189,6 +208,8 @@ bash tests/test_hook.sh
 # Evals need Claude Code logged in, plus a folder with eslint@9 and @eslint/js@9 installed.
 python3 evals/run_evals.py trigger  --reps 2 --work /tmp/s2g --eslint-modules <path>/node_modules
 python3 evals/run_evals.py behavior --reps 2 --work /tmp/s2g --eslint-modules <path>/node_modules
+# Head-to-head: point --rival-src at a checkout of the other skill (see RIVALS in run_evals.py).
+python3 evals/run_evals.py rival --rival self-improvement --rival-src <skill dir> --out rivals.jsonl --work /tmp/s2g --eslint-modules <path>/node_modules
 
 # Charts, logo and social preview are hand-drawn with rough.js.
 (cd evals/charts && npm install)
@@ -196,7 +217,7 @@ python3 evals/make_charts.py
 node evals/charts/logo.mjs && node evals/charts/social.mjs
 ```
 
-All the eval runs together (96 sessions) cost about $12 in API usage.
+All the eval runs together (128 sessions) cost about $16 in API usage.
 
 ## License
 

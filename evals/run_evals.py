@@ -9,6 +9,7 @@ else in the environment is the same.
 Usage:
   python3 evals/run_evals.py trigger  --reps 2 --work <dir> --eslint-modules <node_modules>
   python3 evals/run_evals.py behavior --reps 2 --work <dir> --eslint-modules <node_modules>
+  python3 evals/run_evals.py rival --rival self-improvement --rival-src <skill dir> --out rivals.jsonl ...
 
 Results append to evals/results/<mode>.jsonl. Raw transcripts go to <work>/transcripts.
 Grading is done from files and transcripts, never by asking a model.
@@ -30,6 +31,14 @@ BASE = ["claude", "-p", "--model", "sonnet", "--strict-mcp-config",
 LINT_TOOLS = ["Bash(npm run lint*)", "Bash(npx eslint*)", "Bash(./node_modules/.bin/eslint*)",
               "Bash(node *)", "Bash(grep *)", "Bash(rg *)", "Bash(ls *)", "Bash(cat *)", "Bash(find *)"]
 PROSE = ("AGENTS.md", "CLAUDE.md", ".cursorrules", "CONTRIBUTING.md", "README.md", "CONVENTIONS.md")
+# Other skills to compare against. "src" is a folder passed with --rival-src (not vendored here);
+# skills are copied into the run's .claude/skills, commands into .claude/commands. "slash" is
+# what the user types to invoke it. A rival with no "src" is already installed globally.
+RIVALS = {
+    "self-improvement": {"kind": "skill", "slash": "/self-improvement", "arms": ("auto", "invoked")},
+    "revise-claude-md": {"kind": "command", "slash": "/revise-claude-md", "arms": ("invoked",)},
+    "receiving-code-review": {"kind": "global", "slash": "/superpowers:receiving-code-review", "arms": ("invoked",)},
+}
 
 
 def run_claude(prompt, cwd, extra, transcript):
@@ -68,9 +77,12 @@ def parse(path):
     loaded = any(c["name"] == "Skill" and SKILL in json.dumps(c.get("input", {}))
                  and not results.get(c.get("id"), False) for c in calls) or any(
         c["name"] == "Read" and f"{SKILL}/references/" in c.get("input", {}).get("file_path", "") for c in calls)
+    rival_loaded = {n: any((c["name"] == "Skill" and n in json.dumps(c.get("input", {})))
+                           or (c["name"] == "Read" and f"skills/{n}/" in c.get("input", {}).get("file_path", ""))
+                           for c in calls) for n in RIVALS}
     attempted = any(c["name"] == "Skill" and SKILL in json.dumps(c.get("input", {})) for c in calls)
     bash = [c["input"].get("command", "") for c in calls if c["name"] == "Bash"]
-    return {"skill_loaded": loaded, "skill_attempted": attempted, "bash": bash,
+    return {"skill_loaded": loaded, "skill_attempted": attempted, "rival_loaded": rival_loaded, "bash": bash,
             "cost": final.get("total_cost_usd"), "turns": final.get("num_turns"),
             "final": final.get("result") or ""}
 
@@ -126,7 +138,8 @@ def grade(case, d, modules, info, before):
 
     g["verified_with_lint"] = any(re.search(r"\beslint\b|npm run lint", b) for b in info["bash"])
     after = snapshot(d)
-    g["prose_added"] = any(n in after and after[n] != before.get(n) for n in PROSE)
+    g["prose_added"] = any(n in after and after[n] != before.get(n) for n in PROSE) or any(
+        n.startswith(".learnings/") or n == ".claude.local.md" for n in after if after[n] != before.get(n))
     g["prose_only"] = g["prose_added"] and not g["enforced"]
     src_text = "".join(read(os.path.join(d, p)) for p in after if p.startswith("src/"))
     g["disables_added"] = len(re.findall(r"eslint-disable", src_text))
@@ -171,9 +184,33 @@ def behavior_job(case, variant, arm, rep, args):
             "cost": info["cost"], "turns": info["turns"], "secs": round(secs, 1), **g}
 
 
+def rival_job(case, name, arm, rep, args):
+    """Same soft correction, with slop-to-gold blocked and a rival skill present instead."""
+    rv = RIVALS[name]
+    rid = f"riv-{name}-{case['id']}-{arm}-r{rep}"
+    d = fresh_copy(case["id"], args.work, rid, args.eslint_modules)
+    if rv["kind"] == "skill":
+        shutil.copytree(args.rival_src, os.path.join(d, ".claude", "skills", name))
+    elif rv["kind"] == "command":
+        os.makedirs(os.path.join(d, ".claude", "commands"), exist_ok=True)
+        shutil.copy(args.rival_src, os.path.join(d, ".claude", "commands", name + ".md"))
+    before = snapshot(d)
+    extra = ["--permission-mode", "acceptEdits", "--max-turns", "40", "--max-budget-usd", "3",
+             "--allowedTools", *LINT_TOOLS, "--disallowedTools", f"Skill({SKILL})"]
+    prompt = case["soft"] if arm == "auto" else f"{rv['slash']} {case['soft']}"
+    secs, info = run_claude(prompt, d, extra, os.path.join(args.work, "transcripts", rid + ".jsonl"))
+    # Invoked arms load it by construction; for auto, look for a Skill call or a read of its files.
+    used = arm == "invoked" or info["rival_loaded"].get(name, False)
+    g = grade(case, d, args.eslint_modules, info, before)
+    return {"id": case["id"], "variant": "soft", "arm": f"{name}:{arm}", "rep": rep, "rival_used": used,
+            "cost": info["cost"], "turns": info["turns"], "secs": round(secs, 1), **g}
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["trigger", "behavior"])
+    ap.add_argument("mode", choices=["trigger", "behavior", "rival"])
+    ap.add_argument("--rival", default="", help="rival: which entry of RIVALS")
+    ap.add_argument("--rival-src", default="", help="rival: path to the rival skill folder or command file")
     ap.add_argument("--reps", type=int, default=2)
     ap.add_argument("--work", required=True)
     ap.add_argument("--eslint-modules", required=True)
@@ -189,7 +226,12 @@ def main():
     out = os.path.join(HERE, "results", args.out or f"{args.mode}.jsonl")
 
     jobs = []
-    if args.mode == "trigger":
+    if args.mode == "rival":
+        for c in CASES["behavior"]:
+            for arm in RIVALS[args.rival]["arms"]:
+                for r in range(args.reps):
+                    jobs.append((rival_job, (c, args.rival, arm, r, args)))
+    elif args.mode == "trigger":
         for c in CASES["trigger"]:
             for r in range(args.reps):
                 jobs.append((trigger_job, (c, r, args)))

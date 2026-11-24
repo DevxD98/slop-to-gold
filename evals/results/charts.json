@@ -407,5 +407,137 @@
    }
   ],
   "note": "Graded from files: a hidden probe file with the bad pattern is linted after each run."
+ },
+ {
+  "file": "compare.svg",
+  "title": "Versus other skills that learn from corrections",
+  "subtitle": "Same plain correction (\"you did X again, fix it\"), 8 runs per skill (4 scenarios x 2).",
+  "series": [
+   "Added a check that fails on it",
+   "Check message names the fix",
+   "Fixed other copies too"
+  ],
+  "rows": [
+   {
+    "label": "slop-to-gold (loads on its own)",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.875,
+      "txt": "7/8"
+     },
+     {
+      "v": 0.75,
+      "txt": "6/8"
+     }
+    ]
+   },
+   {
+    "label": "slop-to-gold (/slop-to-gold)",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.875,
+      "txt": "7/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     }
+    ]
+   },
+   {
+    "label": "self-improvement (loads on its own)",
+    "vals": [
+     {
+      "v": 0.125,
+      "txt": "1/8"
+     },
+     {
+      "v": 0.125,
+      "txt": "1/8"
+     },
+     {
+      "v": 0.375,
+      "txt": "3/8"
+     }
+    ]
+   },
+   {
+    "label": "self-improvement (/self-improvement)",
+    "vals": [
+     {
+      "v": 0.125,
+      "txt": "1/8"
+     },
+     {
+      "v": 0.125,
+      "txt": "1/8"
+     },
+     {
+      "v": 0.375,
+      "txt": "3/8"
+     }
+    ]
+   },
+   {
+    "label": "Anthropic /revise-claude-md",
+    "vals": [
+     {
+      "v": 0.125,
+      "txt": "1/8"
+     },
+     {
+      "v": 0.125,
+      "txt": "1/8"
+     },
+     {
+      "v": 0.25,
+      "txt": "2/8"
+     }
+    ]
+   },
+   {
+    "label": "superpowers receiving-code-review",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/8"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/8"
+     },
+     {
+      "v": 0.375,
+      "txt": "3/8"
+     }
+    ]
+   },
+   {
+    "label": "no skill (baseline)",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/8"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/8"
+     },
+     {
+      "v": 0.25,
+      "txt": "2/8"
+     }
+    ]
+   }
+  ],
+  "note": "Graded from files: a hidden probe file with the bad pattern is linted after each run."
  }
 ]

@@ -40,3 +40,15 @@
 |---|---|---|---|---|
 | Skill invoked (/slop-to-gold) | $0.16 | 13.0 | 0 | 0 |
 | Skill blocked (baseline) | $0.15 | 12.1 | 0 | 0 |
+
+**Versus other skills** (plain correction)
+
+| Skill | Added a failing check | Message names fix | Fixed other copies | Lint passes at end | Wrote prose/notes | Avg cost |
+|---|---|---|---|---|---|---|
+| slop-to-gold (loads on its own) | 8/8 | 7/8 | 6/8 | 6/8 | 0/8 | $0.15 |
+| slop-to-gold (/slop-to-gold) | 8/8 | 7/8 | 8/8 | 8/8 | 0/8 | $0.16 |
+| self-improvement (loads on its own) | 1/8 | 1/8 | 3/8 | 8/8 | 0/8 | $0.11 |
+| self-improvement (/self-improvement) | 1/8 | 1/8 | 3/8 | 8/8 | 7/8 | $0.17 |
+| Anthropic /revise-claude-md | 1/8 | 1/8 | 2/8 | 8/8 | 0/8 | $0.12 |
+| superpowers receiving-code-review | 0/8 | 0/8 | 3/8 | 8/8 | 0/8 | $0.13 |
+| no skill (baseline) | 0/8 | 0/8 | 2/8 | 8/8 | 0/8 | $0.11 |

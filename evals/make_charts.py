@@ -43,6 +43,12 @@ ARM_NAMES = {
     "auto-v1": "Loads on its own (old description)",
     "without": "Skill blocked (baseline)",
 }
+RIVAL_NAMES = [
+    ("self-improvement:auto", "self-improvement (loads on its own)"),
+    ("self-improvement:invoked", "self-improvement (/self-improvement)"),
+    ("revise-claude-md:invoked", "Anthropic /revise-claude-md"),
+    ("receiving-code-review:invoked", "superpowers receiving-code-review"),
+]
 
 
 def load(name):
@@ -122,6 +128,30 @@ def main():
             turns = [r["turns"] for r in rs if r.get("turns")]
             md.append(f"| {ARM_NAMES[a]} | ${sum(costs) / max(len(costs), 1):.2f} | {sum(turns) / max(len(turns), 1):.1f} | "
                       f"{sum(bool(r.get('prose_added')) for r in rs)} | {sum(r.get('disables_added', 0) for r in rs)} |")
+
+    # Versus other skills: same plain correction, one row per skill and arm.
+    riv = load("rivals.jsonl")
+    if riv:
+        arms = [("slop-to-gold (loads on its own)", auto2 or soft_rows["auto"]),
+                ("slop-to-gold (/slop-to-gold)", soft_rows["invoked"])]
+        for key, label in RIVAL_NAMES:
+            rs = [r for r in riv if r["arm"] == key]
+            if rs:
+                arms.append((label, rs))
+        arms.append(("no skill (baseline)", soft_rows["without"]))
+        cmp_metrics = [("enforced", "Added a check that fails on it"), ("teaches_fix", "Check message names the fix"),
+                       ("cleaned_old", "Fixed other copies too")]
+        charts.append({"file": "compare.svg", "title": "Versus other skills that learn from corrections",
+                       "subtitle": "Same plain correction (\"you did X again, fix it\"), 8 runs per skill (4 scenarios x 2).",
+                       "series": [l for _, l in cmp_metrics],
+                       "rows": [{"label": name, "vals": [frac(rs, k) for k, _ in cmp_metrics]} for name, rs in arms],
+                       "note": "Graded from files: a hidden probe file with the bad pattern is linted after each run."})
+        md.append("\n**Versus other skills** (plain correction)\n\n| Skill | Added a failing check | Message names fix | Fixed other copies "
+                  "| Lint passes at end | Wrote prose/notes | Avg cost |\n|---|---|---|---|---|---|---|")
+        for name, rs in arms:
+            costs = [r["cost"] for r in rs if r.get("cost")]
+            md.append(f"| {name} | " + " | ".join(frac(rs, k)["txt"] for k in ("enforced", "teaches_fix", "cleaned_old", "lint_clean_end"))
+                      + f" | {sum(bool(r.get('prose_added')) for r in rs)}/{len(rs)} | ${sum(costs) / max(len(costs), 1):.2f} |")
 
     json.dump(charts, open(os.path.join(RES, "charts.json"), "w"), indent=1)
     open(os.path.join(RES, "summary.md"), "w").write("\n".join(md) + "\n")
