@@ -1,0 +1,9 @@
+{
+  "name": "slop-to-gold-charts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@fontsource/caveat": "5.1.0",
+    "roughjs": "4.6.6"
+  }
+}

@@ -179,11 +179,14 @@ def main():
     ap.add_argument("--eslint-modules", required=True)
     ap.add_argument("--jobs", type=int, default=4)
     ap.add_argument("--only", default="")
+    ap.add_argument("--variant", default="", help="behavior: only this prompt variant (soft|explicit)")
+    ap.add_argument("--arm", default="", help="behavior: only this arm (auto|invoked|without)")
+    ap.add_argument("--out", default="", help="results file name (default: <mode>.jsonl)")
     args = ap.parse_args()
     args.eslint_modules = os.path.abspath(args.eslint_modules)
     os.makedirs(os.path.join(args.work, "transcripts"), exist_ok=True)
     os.makedirs(os.path.join(HERE, "results"), exist_ok=True)
-    out = os.path.join(HERE, "results", f"{args.mode}.jsonl")
+    out = os.path.join(HERE, "results", args.out or f"{args.mode}.jsonl")
 
     jobs = []
     if args.mode == "trigger":
@@ -196,7 +199,11 @@ def main():
                 continue
             # soft = a plain correction; explicit = also asks to make it stick.
             for variant, arms in (("soft", ("auto", "invoked", "without")), ("explicit", ("invoked", "without"))):
+                if args.variant and variant != args.variant:
+                    continue
                 for arm in arms:
+                    if args.arm and arm != args.arm:
+                        continue
                     for r in range(args.reps):
                         jobs.append((behavior_job, (c, variant, arm, r, args)))
 

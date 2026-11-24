@@ -1,0 +1,411 @@
+[
+ {
+  "file": "trigger.svg",
+  "title": "When does the skill load on its own?",
+  "subtitle": "Share of runs that loaded the skill, before and after rewording the description.",
+  "series": [
+   "Old description",
+   "New description"
+  ],
+  "rows": [
+   {
+    "section": "Should load the skill"
+   },
+   {
+    "label": "\"setTimeout again, told you last week\"",
+    "vals": [
+     {
+      "v": 0.5,
+      "txt": "1/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"agents keep writing useEffect\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"audit for patterns agents copy\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"tired of reviewing every line\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"as any again, third time\"",
+    "vals": [
+     {
+      "v": 0.5,
+      "txt": "1/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "label": "\"our agent code is full of slop\"",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     },
+     {
+      "v": 1.0,
+      "txt": "2/2"
+     }
+    ]
+   },
+   {
+    "section": "Should not load the skill"
+   },
+   {
+    "label": "add a dark mode toggle",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "write a date parser in Python",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "explain useEffect cleanup",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "set up ESLint (near miss)",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "add a debounce option",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   },
+   {
+    "label": "review a file for bugs (near miss)",
+    "vals": [
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/2"
+     }
+    ]
+   }
+  ],
+  "note": "Headless claude -p, Sonnet, 2 runs per prompt, first 4 turns. Prompts in evals/cases.json."
+ },
+ {
+  "file": "behavior-soft.svg",
+  "title": "Plain correction: \"you did X again, fix it\"",
+  "subtitle": "Share of runs meeting each check. 8 runs per bar (4 scenarios x 2).",
+  "series": [
+   "Skill invoked (/slop-to-gold)",
+   "Skill loads on its own",
+   "Skill blocked (baseline)"
+  ],
+  "rows": [
+   {
+    "label": "Skill loaded",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/8"
+     }
+    ]
+   },
+   {
+    "label": "Fixed the reported bug",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     }
+    ]
+   },
+   {
+    "label": "Fixed other copies too",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.75,
+      "txt": "6/8"
+     },
+     {
+      "v": 0.25,
+      "txt": "2/8"
+     }
+    ]
+   },
+   {
+    "label": "Added a check that fails on it",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/8"
+     }
+    ]
+   },
+   {
+    "label": "Check message names the fix",
+    "vals": [
+     {
+      "v": 0.875,
+      "txt": "7/8"
+     },
+     {
+      "v": 0.875,
+      "txt": "7/8"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/8"
+     }
+    ]
+   },
+   {
+    "label": "Ran lint to verify",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.375,
+      "txt": "3/8"
+     }
+    ]
+   },
+   {
+    "label": "Lint passes at the end",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.75,
+      "txt": "6/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     }
+    ]
+   }
+  ],
+  "note": "Graded from files: a hidden probe file with the bad pattern is linted after each run."
+ },
+ {
+  "file": "behavior-explicit.svg",
+  "title": "Correction that also asks \"make sure it can't come back\"",
+  "subtitle": "Share of runs meeting each check. 8 runs per bar (4 scenarios x 2).",
+  "series": [
+   "Skill invoked (/slop-to-gold)",
+   "Skill blocked (baseline)"
+  ],
+  "rows": [
+   {
+    "label": "Skill loaded",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/8"
+     }
+    ]
+   },
+   {
+    "label": "Fixed the reported bug",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     }
+    ]
+   },
+   {
+    "label": "Fixed other copies too",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.875,
+      "txt": "7/8"
+     }
+    ]
+   },
+   {
+    "label": "Added a check that fails on it",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     }
+    ]
+   },
+   {
+    "label": "Check message names the fix",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.75,
+      "txt": "6/8"
+     }
+    ]
+   },
+   {
+    "label": "Ran lint to verify",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     }
+    ]
+   },
+   {
+    "label": "Lint passes at the end",
+    "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 0.875,
+      "txt": "7/8"
+     }
+    ]
+   }
+  ],
+  "note": "Graded from files: a hidden probe file with the bad pattern is linted after each run."
+ }
+]

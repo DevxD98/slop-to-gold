@@ -1,6 +1,6 @@
 ---
 name: slop-to-gold
-description: Use when the user corrects an agent's code or repeats the same correction, complains about slop or recurring agent mistakes, asks to audit a codebase for anti-patterns agents might copy, or wants agent-written PRs trustworthy without line-by-line review.
+description: Use when the user points out a mistake in your code that they have flagged before ("again", "I told you", "keeps happening", "third time"), even if they only ask you to fix it; when they complain about slop or recurring agent mistakes; when they ask to audit a codebase for anti-patterns agents might copy; or when they want agent-written PRs trustworthy without line-by-line review.
 ---
 
 # Slop to Gold
