@@ -181,7 +181,7 @@ Other skills already try to stop repeat mistakes, so the same plain correction w
 
 ![Versus other skills](docs/compare.svg)
 
-All of them fix the reported line. None of them reliably leaves anything behind that stops the mistake coming back: at most 1 run in 8 added a check that fails on the probe, against 8 in 8 for slop-to-gold. `self-improvement`, when invoked, wrote a careful note in `.learnings/LEARNINGS.md` in 7 of 8 runs, but a note doesn't fail a build, and the probe file passed lint every time. `/revise-claude-md` drafts its `CLAUDE.md` diff and waits for approval, so in a headless run nothing was written. slop-to-gold costs about the same per run ($0.15 to $0.16, against $0.11 to $0.17).
+All of them fix the reported line. None of them reliably leaves anything behind that stops the mistake coming back: at most 1 run in 8 added a check that fails on the probe, against 8 in 8 for slop-to-gold. `self-improvement`, when invoked, wrote a careful note in `.learnings/LEARNINGS.md` in 7 of 8 runs, but a note doesn't fail a build, and the probe file passed lint every time. `/revise-claude-md` drafts its `CLAUDE.md` diff and waits for approval, so in a headless run nothing was written. slop-to-gold uses about the same per run (an estimated $0.15 to $0.16 at API prices, against $0.11 to $0.17).
 
 The gap slop-to-gold still has: when it loads on its own it asks before touching files you didn't mention, so "fixed other copies" is 6/8 rather than 8/8. That's deliberate.
 
@@ -217,7 +217,7 @@ python3 evals/make_charts.py
 node evals/charts/logo.mjs && node evals/charts/social.mjs
 ```
 
-All the eval runs together (128 sessions) cost about $16 in API usage.
+All the eval runs together (128 sessions) would cost about $16 at API prices, going by the `total_cost_usd` that `claude -p` reports for each run. They were run on a Claude subscription, so they used plan limits rather than being billed.
 
 ## License
 
