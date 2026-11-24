@@ -4,7 +4,7 @@ A single [Claude Code skill](https://docs.claude.com/en/docs/claude-code/skills)
 
 Agents copy whatever the codebase already shows them, so slop spreads. This skill makes the codebase the strongest input: when you correct an agent, the fix becomes a lint rule, type, test or dependency boundary first. Prose (AGENTS.md, comments) is the last resort.
 
-Based on ideas from the talk ["slop into gold"](https://youtu.be/O_zcc6Xl12g). The talk is the source of the thesis; this repo is an independent adaptation.
+Inspired by the talk ["slop into gold"](https://youtu.be/O_zcc6Xl12g). See [Inspiration](#inspiration).
 
 ## What it does
 
@@ -46,6 +46,19 @@ Add to `~/.claude/settings.json`, merging into your existing `hooks.PostToolUse`
 It stays silent unless all of these hold: the edited file is JS/TS, a `package.json` exists above it, `node_modules` is installed, and `package.json` defines a `lint` and/or `typecheck` script.
 
 **Cost:** it runs the whole project lint after every edit (60s cap per script), which can be slow on large repos. To disable it, delete the entry.
+
+## Inspiration
+
+This skill is an independent adaptation of ideas from the talk **"slop into gold"**: https://youtu.be/O_zcc6Xl12g
+
+Ideas taken from the talk:
+- A trust pyramid: code design first, then lint/types/tests, then verification, with prose last.
+- Every correction becomes a deterministic check.
+- The codebase is a garden agents copy from, so remove bad examples and ban nuanced APIs.
+- Lint error messages should teach the root-cause fix.
+- Avoid justification comments.
+
+Added here, not from the talk: packaging as a single skill with two modes, the `scan.py` audit script, the PostToolUse hook, and the testing notes. Any mistakes in the adaptation are mine, not the speaker's. All credit for the underlying thinking goes to the talk.
 
 ## Status
 
