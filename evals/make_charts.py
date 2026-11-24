@@ -149,11 +149,22 @@ def main():
         riv = None
         cmp_metrics = [("enforced", "Added a check that fails on it"), ("teaches_fix", "Check message names the fix"),
                        ("lint_clean_end", "Lint passes at the end")]
-        charts.append({"file": "compare.svg", "title": "Versus other skills that learn from corrections",
-                       "subtitle": "Same plain correction, clean setup with only that skill installed. 8 runs per row.",
-                       "series": [l for _, l in cmp_metrics],
-                       "rows": [{"label": name, "vals": [frac(rs, k) for k, _ in cmp_metrics]} for name, rs in arms],
-                       "note": "Graded from files: a hidden probe file with the bad pattern is linted after each run."})
+        # Line chart: the steps of the job in order, one line per skill (roughViz-style).
+        steps = [("fixed_target", "Fixed the|reported line"), ("enforced", "Added a check|that fails on it"),
+                 ("teaches_fix", "Check message|names the fix"), ("cleaned_old", "Fixed the|other copies"),
+                 ("lint_clean_end", "Lint passes|at the end")]
+        pick = [("slop-to-gold:auto", "slop-to-gold"), ("self-improvement:invoked", "self-improvement"),
+                ("revise-claude-md:invoked", "/revise-claude-md"), ("receiving-code-review:invoked", "receiving-code-review"),
+                ("none:-", "no skill")]
+        lines = []
+        for key, lab in pick:
+            rs = [r for r in clean if r["arm"] == key]
+            if rs:
+                lines.append({"name": lab, "vals": [frac(rs, k) for k, _ in steps]})
+        charts.append({"file": "compare.svg", "kind": "line", "title": "Versus other skills that learn from corrections",
+                       "subtitle": "Same plain correction, clean setup with only that skill installed. 8 runs per skill.",
+                       "steps": [l for _, l in steps], "lines": lines,
+                       "note": "Lines that overlap are drawn a few pixels apart. Full numbers: evals/results/summary.md."})
         md.append("\n**Versus other skills, clean setup** (plain correction)\n\n| Skill | Loaded | Added a failing check | Message names fix "
                   "| Fixed other copies | Lint passes at end | Wrote prose/notes | Avg cost (API-price estimate) |\n|---|---|---|---|---|---|---|---|")
         for name, rs in arms:

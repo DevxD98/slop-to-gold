@@ -30,12 +30,73 @@ function paths(drawable, cls, title = "") {
   }).join("");
 }
 
+// Line charts (spec.kind === "line"): roughViz-style smooth sketchy lines with scribble-filled
+// dots. Slots 1-4 of the validated palette, then a neutral dashed line for the baseline.
+const LINES = [["#2a78d6", "#3987e5"], ["#eb6834", "#d95926"], ["#1baf7a", "#199e70"], ["#eda100", "#c98500"], ["#8a8984", "#9b9a92"]];
+
+function drawLine(spec, seedBase) {
+  let seed = seedBase;
+  const X0 = 90, X1 = 560, Y0 = 400, Y1 = 120, LX = 596;
+  const n = spec.steps.length, m = spec.lines.length;
+  const px = (i) => X0 + (i * (X1 - X0)) / (n - 1);
+  const py = (v) => Y0 - v * (Y0 - Y1);
+  const out = [];
+  for (const f of [0, 0.25, 0.5, 0.75, 1]) {
+    const y = py(f);
+    out.push(paths(gen.line(X0 - 8, y, X1 + 14, y, { seed: seed++, roughness: f ? 0.7 : 1.2, stroke: "#000", strokeWidth: f ? 0.8 : 1.6 }), f ? "grid" : "ax"));
+    out.push(`<text x="${X0 - 16}" y="${y + 6}" class="t3" text-anchor="end">${f * 100}%</text>`);
+  }
+  out.push(paths(gen.line(X0 - 8, Y0 + 6, X0 - 8, Y1 - 14, { seed: seed++, roughness: 1.2, stroke: "#000", strokeWidth: 1.6 }), "ax"));
+  spec.steps.forEach((lab, i) => {
+    out.push(paths(gen.line(px(i), Y0 - 4, px(i), Y0 + 6, { seed: seed++, roughness: 0.8, stroke: "#000", strokeWidth: 1.4 }), "ax"));
+    lab.split("|").forEach((part, k) => out.push(`<text x="${px(i)}" y="${Y0 + 28 + k * 20}" class="t2" text-anchor="middle">${esc(part)}</text>`));
+  });
+  spec.lines.forEach((ln, j) => {
+    const dy = (j - (m - 1) / 2) * 5;
+    const pts = ln.vals.map((v, i) => [px(i), py(v.v) + dy]);
+    const cls = j === m - 1 && /no skill/i.test(ln.name) ? "l5" : `l${j + 1}`;
+    out.push(paths(gen.curve(pts, { seed: seed++, roughness: 1.3, bowing: 1, curveTightness: 0.75, stroke: "#000", strokeWidth: 2.6 }), cls === "l5" ? "base" : cls, ln.name));
+    pts.forEach(([x, y], i) => out.push(paths(gen.circle(x, y, 15, { seed: seed++, roughness: 1.2, stroke: "#000", strokeWidth: 1.4, fill: "#000", fillStyle: "hachure", hachureGap: 2.6, fillWeight: 1.2 }), cls, `${ln.name}, ${spec.steps[i].replace("|", " ")}: ${ln.vals[i].txt}`)));
+  });
+  // Legend in a sketchy box, roughViz style.
+  const LH = 30, boxH = 24 + m * LH;
+  out.push(paths(gen.rectangle(LX, Y1 - 8, 206, boxH, { seed: seed++, roughness: 1.4, bowing: 1.5, stroke: "#000", strokeWidth: 1.4 }), "frame"));
+  spec.lines.forEach((ln, j) => {
+    const y = Y1 + 16 + j * LH, cls = j === m - 1 && /no skill/i.test(ln.name) ? "l5" : `l${j + 1}`;
+    out.push(paths(gen.line(LX + 14, y, LX + 40, y, { seed: seed++, roughness: 1.2, stroke: "#000", strokeWidth: 2.6 }), cls === "l5" ? "base" : cls));
+    out.push(paths(gen.circle(LX + 27, y, 11, { seed: seed++, roughness: 1, stroke: "#000", strokeWidth: 1.2, fill: "#000", fillStyle: "hachure", hachureGap: 2.4 }), cls));
+    out.push(`<text x="${LX + 50}" y="${y + 6}" class="t1">${esc(ln.name)}</text>`);
+  });
+  const H = Y0 + 112;
+  const frame = paths(gen.rectangle(6, 6, W - 12, H - 12, { seed: seed++, roughness: 1.6, bowing: 2, stroke: "#000", strokeWidth: 1.5 }), "frame");
+  const css = `
+@font-face{font-family:Caveat;font-weight:600;src:url(data:font/woff2;base64,${font}) format("woff2")}
+svg{font-family:Caveat,"Comic Sans MS",cursive}
+.bg{fill:#fcfcfb}
+.t1{fill:#0b0b0b;font-size:19px}.t2{fill:#52514e;font-size:17px}.t3{fill:#6f6e69;font-size:16px}.h{fill:#0b0b0b;font-size:28px}
+path{fill:none}.ax-line{stroke:#52514e}.grid-line{stroke:#d6d4cc}.frame-line{stroke:#52514e}.base-line{stroke-dasharray:7 6}
+${LINES.map(([lt], i) => `.l${i + 1}-line${i === 4 ? ",.base-line" : ""}{stroke:${lt}}`).join("")}
+@media (prefers-color-scheme: dark){
+.bg{fill:#1a1a19}.t1,.h{fill:#f0efec}.t2{fill:#c3c2b7}.t3{fill:#9b9a92}
+.ax-line,.frame-line{stroke:#c3c2b7}.grid-line{stroke:#383835}
+${LINES.map(([, dk], i) => `.l${i + 1}-line${i === 4 ? ",.base-line" : ""}{stroke:${dk}}`).join("")}
+}`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title)}">
+<style>${css}</style>
+<rect width="100%" height="100%" rx="10" class="bg"/>${frame}
+<text x="${PAD}" y="40" class="h">${esc(spec.title)}</text>
+<text x="${PAD}" y="66" class="t2">${esc(spec.subtitle)}</text>
+${out.join("")}
+<text x="${PAD}" y="${H - 16}" class="t3">${esc(spec.note)}</text>
+</svg>`;
+}
+
 let mseed = 7;
 function marker(i, x, y, r) {
-  const o = { seed: mseed++, roughness: 1.1, stroke: "#000", strokeWidth: 1.6, fill: "#000", fillStyle: "solid" };
+  const o = { seed: mseed++, roughness: 1.2, stroke: "#000", strokeWidth: 1.5, fill: "#000", fillStyle: "hachure", hachureGap: 2.4, fillWeight: 1.2 };
   if (i === 1) return gen.rectangle(x - r * 0.9, y - r * 0.9, r * 1.8, r * 1.8, o);
   if (i === 2) return gen.polygon([[x, y - r * 1.25], [x + r * 1.25, y], [x, y + r * 1.25], [x - r * 1.25, y]], o);
-  return gen.circle(x, y, r * 2, o);
+  return gen.circle(x, y, r * 2.2, o);
 }
 
 function draw(spec, seedBase) {
@@ -114,6 +175,6 @@ const outDir = process.env.CHARTS_OUT || path.join(root, "docs");
 fs.mkdirSync(outDir, { recursive: true });
 specs.forEach((spec, i) => {
   mseed = 7 + 100 * i;
-  fs.writeFileSync(path.join(outDir, spec.file), draw(spec, 1000 * (i + 1)));
+  fs.writeFileSync(path.join(outDir, spec.file), (spec.kind === "line" ? drawLine : draw)(spec, 1000 * (i + 1)));
   console.log("drew " + path.join(outDir, spec.file));
 });

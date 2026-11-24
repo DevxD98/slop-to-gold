@@ -186,6 +186,8 @@ Prompt: "Audit this codebase for anti-patterns that coding agents would copy if 
 
 The same plain correction was run with each of these installed instead: [self-improvement](https://github.com/pskoett/pskoett-ai-skills) (commit `878b0e4`), [/revise-claude-md](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-md-management) (commit `5cec671`), and [receiving-code-review](https://github.com/obra/superpowers) (superpowers 7.0.2). None added a check in any run (0/8 each), the same as no skill. They fix the reported line. `self-improvement` wrote notes to `.learnings/`, but a note doesn't fail a build.
 
+Read the chart left to right as the steps of the job. Every skill fixes the line the user pointed at, and every skill ends with lint passing. Only slop-to-gold stays at the top in between: for the others, lint passes only because nothing was added that could fail.
+
 ### Does it load on prompts it was never tuned on?
 
 ![Trigger results on held-out prompts](docs/trigger-clean.svg)

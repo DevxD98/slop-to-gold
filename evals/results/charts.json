@@ -236,17 +236,28 @@
  },
  {
   "file": "compare.svg",
+  "kind": "line",
   "title": "Versus other skills that learn from corrections",
-  "subtitle": "Same plain correction, clean setup with only that skill installed. 8 runs per row.",
-  "series": [
-   "Added a check that fails on it",
-   "Check message names the fix",
-   "Lint passes at the end"
+  "subtitle": "Same plain correction, clean setup with only that skill installed. 8 runs per skill.",
+  "steps": [
+   "Fixed the|reported line",
+   "Added a check|that fails on it",
+   "Check message|names the fix",
+   "Fixed the|other copies",
+   "Lint passes|at the end"
   ],
-  "rows": [
+  "lines": [
    {
-    "label": "slop-to-gold (loads on its own)",
+    "name": "slop-to-gold",
     "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
      {
       "v": 1.0,
       "txt": "8/8"
@@ -262,15 +273,23 @@
     ]
    },
    {
-    "label": "slop-to-gold (/slop-to-gold)",
+    "name": "self-improvement",
     "vals": [
      {
       "v": 1.0,
       "txt": "8/8"
      },
      {
-      "v": 1.0,
-      "txt": "8/8"
+      "v": 0.0,
+      "txt": "0/8"
+     },
+     {
+      "v": 0.0,
+      "txt": "0/8"
+     },
+     {
+      "v": 0.25,
+      "txt": "2/8"
      },
      {
       "v": 1.0,
@@ -279,8 +298,12 @@
     ]
    },
    {
-    "label": "self-improvement (loads on its own)",
+    "name": "/revise-claude-md",
     "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
      {
       "v": 0.0,
       "txt": "0/8"
@@ -288,6 +311,10 @@
      {
       "v": 0.0,
       "txt": "0/8"
+     },
+     {
+      "v": 0.25,
+      "txt": "2/8"
      },
      {
       "v": 1.0,
@@ -296,8 +323,12 @@
     ]
    },
    {
-    "label": "self-improvement (/self-improvement)",
+    "name": "receiving-code-review",
     "vals": [
+     {
+      "v": 1.0,
+      "txt": "8/8"
+     },
      {
       "v": 0.0,
       "txt": "0/8"
@@ -305,6 +336,10 @@
      {
       "v": 0.0,
       "txt": "0/8"
+     },
+     {
+      "v": 0.25,
+      "txt": "2/8"
      },
      {
       "v": 1.0,
@@ -313,25 +348,12 @@
     ]
    },
    {
-    "label": "Anthropic /revise-claude-md",
+    "name": "no skill",
     "vals": [
-     {
-      "v": 0.0,
-      "txt": "0/8"
-     },
-     {
-      "v": 0.0,
-      "txt": "0/8"
-     },
      {
       "v": 1.0,
       "txt": "8/8"
-     }
-    ]
-   },
-   {
-    "label": "superpowers receiving-code-review",
-    "vals": [
+     },
      {
       "v": 0.0,
       "txt": "0/8"
@@ -341,21 +363,8 @@
       "txt": "0/8"
      },
      {
-      "v": 1.0,
-      "txt": "8/8"
-     }
-    ]
-   },
-   {
-    "label": "no skill (baseline)",
-    "vals": [
-     {
-      "v": 0.0,
-      "txt": "0/8"
-     },
-     {
-      "v": 0.0,
-      "txt": "0/8"
+      "v": 0.25,
+      "txt": "2/8"
      },
      {
       "v": 1.0,
@@ -364,7 +373,7 @@
     ]
    }
   ],
-  "note": "Graded from files: a hidden probe file with the bad pattern is linted after each run."
+  "note": "Lines that overlap are drawn a few pixels apart. Full numbers: evals/results/summary.md."
  },
  {
   "file": "trigger-clean.svg",
